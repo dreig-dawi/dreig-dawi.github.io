@@ -1,15 +1,14 @@
-import logo from './logo.svg';
 import './App.css';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+        <img src="https://www.svgrepo.com/show/474300/chef-hat.svg" className="App-logo" alt="logo" />
         <p>
-          Pini aquí empiexa todo
+          Pini aquí empieXa todo
         </p>
-        /* href="https://reactjs.org" */
+          {/* href="https://reactjs.org" */}
         <a
           className="App-link"
           target="_blank"
