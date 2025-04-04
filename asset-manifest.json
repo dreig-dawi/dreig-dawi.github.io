@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/dreig-dawi.github.io/static/css/main.f855e6bc.css",
+    "main.js": "/dreig-dawi.github.io/static/js/main.f923c00e.js",
+    "static/js/453.c595bcac.chunk.js": "/dreig-dawi.github.io/static/js/453.c595bcac.chunk.js",
+    "static/media/logo.svg": "/dreig-dawi.github.io/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
+    "index.html": "/dreig-dawi.github.io/index.html",
+    "main.f855e6bc.css.map": "/dreig-dawi.github.io/static/css/main.f855e6bc.css.map",
+    "main.f923c00e.js.map": "/dreig-dawi.github.io/static/js/main.f923c00e.js.map",
+    "453.c595bcac.chunk.js.map": "/dreig-dawi.github.io/static/js/453.c595bcac.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f855e6bc.css",
+    "static/js/main.f923c00e.js"
+  ]
+}
