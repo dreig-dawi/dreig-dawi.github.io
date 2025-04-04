@@ -1,7 +1,7 @@
 {
   "name": "cheffin",
   "version": "0.1.0",
-  "homepage": "https://dreig-dawi.github.io/dreig-dawi.github.io",
+  "homepage": "https://dreig-dawi.github.io/",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
@@ -38,5 +38,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "react-router-dom": "^7.4.1"
   }
 }
