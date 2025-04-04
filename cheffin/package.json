@@ -16,7 +16,7 @@
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "postdeploy": "git checkout gh-pages && echo cheffin.es > CNAME && echo 1 && git add CNAME && echo 2 && git config --global user.email \"dreigbuades@cifpfbmoll.eu\" && git config --global user.name \"dreig-dawi\" git commit -m 'add CNAME' && echo 3 && git push origin gh-pages && echo 4",
+    "postdeploy": "git checkout gh-pages && echo cheffin.es > CNAME && echo 1 && git add CNAME && echo 2 && git config --global user.email \"dreigbuades@cifpfbmoll.eu\" && git config --global user.name \"dreig-dawi\" && git commit -m 'add CNAME' && echo 3 && git push origin gh-pages && echo 4",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
