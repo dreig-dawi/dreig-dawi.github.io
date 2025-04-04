@@ -3,7 +3,7 @@ name: Create CNAME file
 on:
   push:
     branches:
-      - gh-pages
+      - main
 
 jobs:
   create-cname:
@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Switch branch
+        run: git checkout gh-pages
 
       - name: Create CNAME file
         run: echo cheffin.es > CNAME
