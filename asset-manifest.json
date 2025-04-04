@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/dreig-dawi.github.io/static/css/main.f855e6bc.css",
-    "main.js": "/dreig-dawi.github.io/static/js/main.c18cef99.js",
-    "static/js/453.c595bcac.chunk.js": "/dreig-dawi.github.io/static/js/453.c595bcac.chunk.js",
-    "index.html": "/dreig-dawi.github.io/index.html",
-    "main.f855e6bc.css.map": "/dreig-dawi.github.io/static/css/main.f855e6bc.css.map",
-    "main.c18cef99.js.map": "/dreig-dawi.github.io/static/js/main.c18cef99.js.map",
-    "453.c595bcac.chunk.js.map": "/dreig-dawi.github.io/static/js/453.c595bcac.chunk.js.map"
+    "main.css": "/static/css/main.9bcbe847.css",
+    "main.js": "/static/js/main.64f6d362.js",
+    "static/js/453.c595bcac.chunk.js": "/static/js/453.c595bcac.chunk.js",
+    "index.html": "/index.html",
+    "main.9bcbe847.css.map": "/static/css/main.9bcbe847.css.map",
+    "main.64f6d362.js.map": "/static/js/main.64f6d362.js.map",
+    "453.c595bcac.chunk.js.map": "/static/js/453.c595bcac.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.f855e6bc.css",
-    "static/js/main.c18cef99.js"
+    "static/css/main.9bcbe847.css",
+    "static/js/main.64f6d362.js"
   ]
 }
