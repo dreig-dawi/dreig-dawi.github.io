@@ -1,5 +1,8 @@
 name: Create CNAME file
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -24,6 +27,7 @@ jobs:
             git push origin gh-pages
           else
             git checkout gh-pages
+            git pull origin gh-pages
           fi
 
       - name: Create CNAME file
@@ -32,5 +36,6 @@ jobs:
       - name: Commit and push changes
         run: |
           git add CNAME
-          git commit -m 'Add CNAME file'
+          git commit -m 'Add CNAME file' || echo "No changes to commit"
+          git pull origin gh-pages --rebase
           git push origin gh-pages
