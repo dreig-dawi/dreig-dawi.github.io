@@ -23,12 +23,14 @@ jobs:
           if ! git show-ref --verify --quiet refs/heads/gh-pages; then
             git checkout --orphan gh-pages
             git fetch
+            git pull
             git rm -rf .
             git commit --allow-empty -m "Initialize gh-pages branch"
             git push origin gh-pages
           else
             git checkout gh-pages
             git fetch
+            git pull
             git pull origin gh-pages
           fi
 
