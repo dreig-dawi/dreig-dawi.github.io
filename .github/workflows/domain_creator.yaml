@@ -22,13 +22,16 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           if ! git show-ref --verify --quiet refs/heads/gh-pages; then
             git checkout --orphan gh-pages
+            echo 1
             git rm -rf .
+            echo 2
             git commit --allow-empty -m "Initialize gh-pages branch"
+            echo 3
             git push origin gh-pages
           else
-            git checkout gh-pages
             git fetch origin gh-pages
-            git rebase origin/gh-pages
+            git checkout gh-pages
+            git reset --hard origin/gh-pages
           fi
 
       - name: Create CNAME file
