@@ -22,11 +22,11 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           if ! git show-ref --verify --quiet refs/heads/gh-pages; then
             git checkout --orphan gh-pages
-            echo 1
             git rm -rf .
-            echo 2
             git commit --allow-empty -m "Initialize gh-pages branch"
             echo 3
+            git fetch
+            git pull
             git push origin gh-pages
           else
             git fetch origin gh-pages
