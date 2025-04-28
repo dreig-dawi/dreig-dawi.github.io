@@ -26,6 +26,7 @@ jobs:
             git commit --allow-empty -m "Initialize gh-pages branch"
             echo 3
             git fetch
+            echo 4
             git pull
             git push origin gh-pages
           else
