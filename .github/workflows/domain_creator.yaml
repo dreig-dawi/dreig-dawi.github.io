@@ -27,7 +27,7 @@ jobs:
             echo 3
             git fetch
             echo 4
-            git pull
+            git pull origin gh-pages
             git push origin gh-pages
           else
             git fetch origin gh-pages
