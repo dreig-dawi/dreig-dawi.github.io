@@ -4,9 +4,7 @@ permissions:
   contents: write
 
 on:
-  push:
-    branches:
-      - gh-pages
+  deployment
 
 jobs:
   create-cname:
