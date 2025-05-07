@@ -4,7 +4,10 @@ permissions:
   contents: write
 
 on:
-  page_build
+  workflow_run:
+    workflows: [pages-build-deployment]
+    types:
+      - completed
 
 jobs:
   create-cname:
