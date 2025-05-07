@@ -6,16 +6,13 @@ permissions:
 on:
   push:
     branches:
-      - main
+      - gh-pages
 
 jobs:
   create-cname:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
       - name: Switch branch
         run: |
           git config --global user.name 'github-actions[bot]'
