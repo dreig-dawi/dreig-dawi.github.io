@@ -10,8 +10,7 @@ function App() {
                     Pini aquí empieXa todo
                 </p>
                 {/* href="https://reactjs.org" */}
-                <Link className="App-link" to="/home"
-                >
+                <Link className="App-link" to="/home">
                     Gracias por la inspiración 👍
                 </Link>
             </header>
