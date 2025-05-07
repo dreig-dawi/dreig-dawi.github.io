@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  create-cname:
+  push-to-gh:
     runs-on: ubuntu-latest
 
     steps:
