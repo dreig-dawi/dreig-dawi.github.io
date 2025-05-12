@@ -1,15 +1,13 @@
 import React, {useEffect} from 'react';
 import './Home.css';
-// @ts-ignore
-import {endpoint, localEndpoint} from "../Utils/Constants.ts";
+import {endpoint} from "../Utils/Constants.ts";
+import {getImgSrc} from "../Utils/Utils.tsx";
 
 function Home() {
     useEffect(() => {
         async function fetchData() {
             try {
                 const postResponse = await fetch(endpoint + '/post').then(res => res.json());
-
-                console.log("got something?: " + postResponse);
 
                 for (const post of postResponse) {
                     const contentResponse = await fetch(endpoint + '/content/' + post.id).then(res => res.json());
@@ -18,8 +16,10 @@ function Home() {
                     for (const content of contentResponse) {
                         contentList.push(content.data);
                     }
+
                     const postElement = createPost(post.username, post.description, contentList);
                     const mainElement = document.getElementById('post_div');
+
                     if (mainElement) {
                         mainElement.appendChild(postElement);
                     }
@@ -47,10 +47,14 @@ function Home() {
         const imagesContainer = document.createElement('div');
         imagesContainer.className = 'post-images';
         content.forEach((image, index) => {
-            const imgElement = document.createElement('img');
-            imgElement.src = image;
-            imgElement.alt = `Content ${index + 1}`;
-            imagesContainer.appendChild(imgElement);
+            try {
+                const imgSrc = getImgSrc(image);
+                const imgElement = document.createElement('img');
+
+                imgElement.src = imgSrc;
+                imgElement.alt = `Content ${index + 1}`;
+                imagesContainer.appendChild(imgElement);
+            } catch (error) {}
         });
         postElement.appendChild(imagesContainer);
 
