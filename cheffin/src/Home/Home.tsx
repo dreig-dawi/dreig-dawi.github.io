@@ -74,7 +74,7 @@ function createPost(user: string, description: string, content: string[]): HTMLE
                    src={imgSrc}
                    alt={`Content ${index + 1}`}
                    preview
-                    indicatorIcon={<img className="icon" src="icons/chef-hat.svg" />}
+                    indicatorIcon={<img className="icon" src="icons/chef-hat.svg" alt="Chef icon" />}
                />
            );
         } catch (error) {
