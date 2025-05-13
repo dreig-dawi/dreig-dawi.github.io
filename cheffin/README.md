@@ -1,70 +1,113 @@
-# Getting Started with Create React App
+# Cheffin Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the frontend component of the Cheffin application - a platform to connect users with professional chefs.
 
-## Available Scripts
+## Overview
 
-In the project directory, you can run:
+The Cheffin frontend is built with React and provides a responsive user interface for:
+- User authentication (login/registration)
+- Browsing chef profiles
+- Real-time chat functionality
+- User and chef profile management
 
-### `npm start`
+## Technology Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- React 19
+- Material UI 7
+- PrimeReact 10
+- Socket.io Client for real-time communication
+- Axios for API requests
+- JWT authentication
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Getting Started
 
-### `npm test`
+### Prerequisites
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Node.js (v16 or higher)
+- npm (v7 or higher)
 
-### `npm run build`
+### Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+# Navigate to the frontend directory
+cd FrontEnd/cheffin
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# Install dependencies
+npm install
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Configuration
 
-### `npm run eject`
+Create a `.env` file in the root directory with the following content:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```
+REACT_APP_API_URL=http://localhost:8080
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+For production, the API endpoint is configured in `src/Utils/Constants.ts`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Running the Application
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm start
+```
 
-## Learn More
+The application will be available at [http://localhost:3000](http://localhost:3000).
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Building for Production
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```bash
+npm run build
+```
 
 ### Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+The frontend is configured for deployment to GitHub Pages:
 
-### `npm run build` fails to minify
+```bash
+npm run deploy
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Project Structure
+
+```
+cheffin/
+├── public/               # Static files
+│   ├── icons/            # Application icons
+│   └── index.html        # HTML template
+├── src/
+│   ├── components/       # Reusable UI components
+│   │   ├── Auth/         # Authentication components
+│   │   ├── Chat/         # Chat interface components
+│   │   ├── Layout/       # Layout components
+│   │   └── Profile/      # Profile components
+│   ├── context/          # React context providers
+│   │   └── AuthContext.js # Authentication context
+│   ├── Home/             # Home page component
+│   ├── pages/            # Application pages
+│   │   ├── Chat/         # Chat page
+│   │   ├── ChefProfile/  # Chef profile page
+│   │   ├── Dashboard/    # User dashboard
+│   │   ├── Login/        # Login page
+│   │   ├── NotFound/     # 404 page
+│   │   ├── Register/     # Registration page
+│   │   └── UserProfile/  # User profile page
+│   ├── Utils/            # Utility functions and constants
+│   │   ├── Constants.ts  # Application constants
+│   │   └── Utils.tsx     # Helper functions
+│   ├── App.js            # Main application component
+│   └── index.js          # Application entry point
+└── package.json          # NPM package configuration
+```
+
+## Learn More
+
+For more detailed information about the entire Cheffin project, including the backend implementation and deployment instructions, refer to the [main project README](../README.md).
+
+## Available Scripts
+
+- `npm start` - Runs the app in development mode
+- `npm test` - Launches the test runner
+- `npm run build` - Builds the app for production
+- `npm run eject` - Ejects the app from Create React App
+- `npm run deploy` - Deploys the app to GitHub Pages
