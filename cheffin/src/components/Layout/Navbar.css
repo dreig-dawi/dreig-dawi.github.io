@@ -1,0 +1,41 @@
+.navbar {
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.drawer-header {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #fff8f3;
+}
+
+/* Animation for the logo */
+.navbar img {
+  transition: transform 0.3s ease;
+}
+
+.navbar img:hover {
+  transform: rotate(10deg);
+}
+
+/* Navbar links animation */
+.navbar a {
+  position: relative;
+}
+
+.navbar a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #F16A2D;
+  transition: width 0.3s ease;
+}
+
+.navbar a:hover::after {
+  width: 100%;
+}
