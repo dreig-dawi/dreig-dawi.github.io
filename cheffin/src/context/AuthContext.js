@@ -60,8 +60,8 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData, isChef = false) => {
     setError(null);
     try {
-      const endpoint = isChef ? `${endpoint}/users/register/chef` : `${endpoint}/users/register`;
-      const response = await axios.post(endpoint, userData);
+      const endpointed = isChef ? `${endpoint}/users/register/chef` : `${endpoint}/users/register`;
+      const response = await axios.post(endpointed, userData);
       
       // If registration returns a token, store it and set user
       if (response.data.token) {
