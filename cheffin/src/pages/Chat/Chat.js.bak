@@ -30,104 +30,6 @@ function Chat() {
   const [showConversations, setShowConversations] = useState(true);
   
   const messagesEndRef = useRef(null);
-  
-  // Fetch the list of conversations
-  const fetchConversations = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      
-      const response = await axios.get(`${endpoint}/chat/conversations`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      setConversations(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching conversations:', error);
-      setLoading(false);
-    }
-  }, []);
-  
-  // Fetch profile of the chat recipient
-  const fetchRecipientProfile = useCallback(async (recipientUsername) => {
-    try {
-      const response = await axios.get(`${endpoint}/users/profile/${recipientUsername}`);
-      setRecipient(response.data);
-    } catch (error) {
-      console.error('Error fetching recipient profile:', error);
-    }
-  }, []);
-  
-  // Helper function to update conversations list when a new message is received
-  const updateConversationsList = useCallback((newMessage) => {
-    if (!currentUser) return;
-    
-    setConversations(prevConversations => {
-      // Determine if sender or recipient
-      const isReceiver = newMessage.senderUsername !== currentUser.username;
-      const conversationParticipantId = isReceiver ? newMessage.senderId : newMessage.recipientId;
-      const conversationUsername = isReceiver ? newMessage.senderUsername : newMessage.recipientUsername;
-      
-      // Check if conversation exists
-      const conversationExists = prevConversations.some(
-        conv => conv.participantId === conversationParticipantId
-      );
-      
-      if (!conversationExists) {
-        // Add new conversation
-        return [...prevConversations, {
-          participantId: conversationParticipantId,
-          username: conversationUsername,
-          lastMessage: newMessage.content,
-          timestamp: newMessage.timestamp
-        }];
-      }
-      
-      // Update existing conversation
-      return prevConversations.map(conv => {
-        if (conv.participantId === conversationParticipantId) {
-          return {
-            ...conv,
-            lastMessage: newMessage.content,
-            timestamp: newMessage.timestamp
-          };
-        }
-        return conv;
-      });
-    });
-  }, [currentUser]);
-  
-  // Fetch chat messages for a specific conversation
-  const fetchMessages = useCallback(async (participantId, participantUsername) => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('authToken');
-      
-      const response = await axios.get(`${endpoint}/chat/messages/${participantId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      setMessages(response.data);
-      setActiveConversation({
-        id: participantId,
-        username: participantUsername
-      });
-      
-      // Get recipient details
-      fetchRecipientProfile(participantUsername);
-      
-      // On mobile, show the chat and hide the conversations list
-      if (isMobileView) {
-        setShowConversations(false);
-      }
-      
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      setLoading(false);
-    }
-  }, [isMobileView, fetchRecipientProfile]);
-  
   // Initialize socket connection
   useEffect(() => {
     // Check if user is authenticated
@@ -184,8 +86,7 @@ function Chat() {
       console.error('STOMP error:', frame.headers.message);
       console.error('Additional details:', frame.body);
     };
-    
-    stompClient.activate();
+      stompClient.activate();
     setSocket(stompClient);
     
     // Fetch conversations (list of people the user has chatted with)
@@ -197,7 +98,7 @@ function Chat() {
         stompClient.deactivate();
       }
     };
-  }, [isAuthenticated, navigate, currentUser, updateConversationsList, fetchConversations]);
+  }, [isAuthenticated, navigate, currentUser]);
   
   // Error handling for WebSocket
   useEffect(() => {
@@ -218,6 +119,44 @@ function Chat() {
       // Cleanup subscriptions when component unmounts
     };
   }, [socket, currentUser]);
+    // Helper function to update conversations list when a new message is received
+  const updateConversationsList = useCallback((newMessage) => {
+    if (!currentUser) return;
+    
+    setConversations(prevConversations => {
+      // Determine if sender or recipient
+      const isReceiver = newMessage.senderUsername !== currentUser.username;
+      const conversationParticipantId = isReceiver ? newMessage.senderId : newMessage.recipientId;
+      const conversationUsername = isReceiver ? newMessage.senderUsername : newMessage.recipientUsername;
+      
+      // Check if conversation exists
+      const conversationExists = prevConversations.some(
+        conv => conv.participantId === conversationParticipantId
+      );
+      
+      if (!conversationExists) {
+        // Add new conversation
+        return [...prevConversations, {
+          participantId: conversationParticipantId,
+          username: conversationUsername,
+          lastMessage: newMessage.content,
+          timestamp: newMessage.timestamp
+        }];
+      }
+      
+      // Update existing conversation
+      return prevConversations.map(conv => {
+        if (conv.participantId === conversationParticipantId) {
+          return {
+            ...conv,
+            lastMessage: newMessage.content,
+            timestamp: newMessage.timestamp
+          };
+        }
+        return conv;
+      });
+    });
+  }, [currentUser]);
   
   // Handle window resize for responsive layout
   useEffect(() => {
@@ -231,8 +170,63 @@ function Chat() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+    // Fetch the list of conversations
+  const fetchConversations = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      
+      const response = await axios.get(`${endpoint}/chat/conversations`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setConversations(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+      setLoading(false);
+    }
+  }, []);
+    // Fetch chat messages for a specific conversation
+  const fetchMessages = useCallback(async (participantId, participantUsername) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('authToken');
+      
+      const response = await axios.get(`${endpoint}/chat/messages/${participantId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setMessages(response.data);
+      setActiveConversation({
+        id: participantId,
+        username: participantUsername
+      });
+      
+      // Get recipient details
+      fetchRecipientProfile(participantUsername);
+      
+      // On mobile, show the chat and hide the conversations list
+      if (isMobileView) {
+        setShowConversations(false);
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      setLoading(false);
+    }
+  }, [isMobileView, fetchRecipientProfile]);
   
-  // When a specific chef is selected from the URL
+  // Fetch profile of the chat recipient
+  const fetchRecipientProfile = useCallback(async (recipientUsername) => {
+    try {
+      const response = await axios.get(`${endpoint}/users/profile/${recipientUsername}`);
+      setRecipient(response.data);
+    } catch (error) {
+      console.error('Error fetching recipient profile:', error);
+    }
+  }, []);
+    // When a specific chef is selected from the URL
   useEffect(() => {
     if (username && currentUser) {
       // Find the conversation if it exists
@@ -259,8 +253,7 @@ function Chat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-  
-  const handleSendMessage = () => {
+    const handleSendMessage = () => {
     if (!message.trim() || !socket || !activeConversation) return;
     
     const messageData = {
