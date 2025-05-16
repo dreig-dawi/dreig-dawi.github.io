@@ -27,43 +27,19 @@ function Chat() {
   const [showConversations, setShowConversations] = useState(true);
   const [error, setError] = useState('');
   
-  // Track conversation fetches to prevent excessive API calls
-  // We don't need the fetchTime state since we've already optimized with a different approach
-  
   // Polling interval reference
   const pollIntervalRef = useRef(null);
-  const messagesEndRef = useRef(null);  // Fetch profile of the chat recipient (with caching)
-  const fetchRecipientProfile = useCallback(async (recipientUsername) => {
-    // Don't fetch if we already have this recipient's profile
-    if (recipient && recipient.username === recipientUsername) {
-      console.log(`Already have profile for ${recipientUsername}, skipping fetch`);
-      return; // Already have this recipient's profile
-    }
-    
-    console.log(`Fetching profile for user: ${recipientUsername}`);
-    try {
-      const url = `${endpoint}/users/profile/${recipientUsername}`;
-      
-      const response = await axios.get(url);
-      console.log(`Successfully fetched profile for ${recipientUsername}`);
-      setRecipient(response.data);
-    } catch (error) {
-      console.error('Error fetching recipient profile:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      setError(`Failed to load user profile: ${error.response?.data?.message || error.message}`);
-    }
-  }, [recipient]);
+  const messagesEndRef = useRef(null);
   
-  // Fetch the list of conversations  
+  // Fetch the list of conversations
   const fetchConversations = useCallback(async (retryCount = 0) => {
     try {
-      console.log('Fetching conversations...');
       // Verify auth token
       const token = localStorage.getItem('authToken');
       if (!token) {
         console.error('No authentication token found');
         setError('Authentication required. Please log in again.');
-        return [];
+        return;
       }
       
       // Check if user data is available
@@ -72,17 +48,14 @@ function Chat() {
         if (retryCount < 3) {
           // Try again after a delay if user data isn't available yet (race condition)
           console.log(`User data not available, retrying in 1 second (attempt ${retryCount + 1}/3)...`);
-          return new Promise(resolve => {
-            setTimeout(async () => {
-              const result = await fetchConversations(retryCount + 1);
-              resolve(result);
-            }, 1000);
-          });
+          setTimeout(() => fetchConversations(retryCount + 1), 1000);
+          return;
         }
         setError('User data not loaded. Please refresh the page.');
-        return [];
+        return;
       }
-        // Add a timestamp to prevent caching
+      
+      // Add a timestamp to prevent caching
       const url = `${endpoint}/chat/conversations?_t=${new Date().getTime()}`;
       
       const response = await axios.get(url, {
@@ -93,10 +66,8 @@ function Chat() {
         }
       });
       
-      let conversationsData = [];
       if (Array.isArray(response.data)) {
-        conversationsData = response.data;
-        setConversations(conversationsData);
+        setConversations(response.data);
       } else {
         console.warn('Backend returned non-array response for conversations:', response.data);
         setConversations([]);
@@ -114,8 +85,6 @@ function Chat() {
           fetchRecipientProfile(username);
         }
       }
-      
-      return conversationsData;
     } catch (error) {
       console.error('Error fetching conversations:', error);
       console.error('Error details:', error.response?.data || error.message);
@@ -123,20 +92,30 @@ function Chat() {
       if (retryCount < 2) {
         // Try again after a delay
         console.log(`Error fetching conversations, retrying in ${(retryCount + 1) * 1000}ms...`);
-        return new Promise(resolve => {
-          setTimeout(async () => {
-            const result = await fetchConversations(retryCount + 1);
-            resolve(result);
-          }, (retryCount + 1) * 1000);
-        });
+        setTimeout(() => fetchConversations(retryCount + 1), (retryCount + 1) * 1000);
+        return;
       }
       
       setError(`Failed to load conversations: ${error.response?.data?.message || error.message || 'Unknown error'}`);
       setLoading(false);
-      return [];
     }
   }, [currentUser, username, recipient, fetchRecipientProfile]);
-    // Helper function to update conversations list when a new message is received
+  
+  // Fetch profile of the chat recipient
+  const fetchRecipientProfile = useCallback(async (recipientUsername) => {
+    try {
+      const url = `${endpoint}/users/profile/${recipientUsername}`;
+      
+      const response = await axios.get(url);
+      setRecipient(response.data);
+    } catch (error) {
+      console.error('Error fetching recipient profile:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      setError(`Failed to load user profile: ${error.response?.data?.message || error.message}`);
+    }
+  }, []);
+  
+  // Helper function to update conversations list when a new message is received
   const updateConversationsList = useCallback((newMessage) => {
     if (!currentUser) return;
     
@@ -174,17 +153,9 @@ function Chat() {
       });
     });
   }, [currentUser]);
-    // Fetch chat messages for a specific conversation
+  
+  // Fetch chat messages for a specific conversation
   const fetchMessages = useCallback(async (participantId, participantUsername) => {
-    console.log(`Fetching messages for participant ID: ${participantId}, username: ${participantUsername}`);
-    
-    if (!participantId) {
-      console.error('Cannot fetch messages: participantId is undefined');
-      setError('Cannot load messages: Invalid user ID');
-      setLoading(false);
-      return;
-    }
-    
     try {
       setLoading(true);
       const token = localStorage.getItem('authToken');
@@ -196,21 +167,16 @@ function Chat() {
       }
       
       const url = `${endpoint}/chat/messages/${participantId}`;
-      console.log(`Sending GET request to: ${url}`);
       
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      console.log(`Received ${response.data.length} messages`);
       setMessages(response.data);
-      
-      // Update active conversation with both id and username
       setActiveConversation({
         id: participantId,
         username: participantUsername
       });
-      console.log(`Active conversation set to ID: ${participantId}, username: ${participantUsername}`);
       
       // Get recipient details
       fetchRecipientProfile(participantUsername);
@@ -296,7 +262,8 @@ function Chat() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-    // When a specific chef is selected from the URL
+  
+  // When a specific chef is selected from the URL
   useEffect(() => {
     if (username && currentUser) {
       console.log('URL parameter detected, username:', username);
@@ -312,25 +279,18 @@ function Chat() {
         console.log('Starting new conversation');
         
         // If no existing conversation, fetch the user profile to start a new conversation
-        // Only fetch if we don't already have this recipient's profile
-        if (!recipient || recipient.username !== username) {
-          fetchRecipientProfile(username);
-        }
+        fetchRecipientProfile(username);
+        setActiveConversation({
+          username: username
+        });
         
-        // Set active conversation only if it's not already set
-        if (!activeConversation || activeConversation.username !== username) {
-          setActiveConversation({
-            username: username
-          });
-          
-          // On mobile, show the chat view
-          if (isMobileView) {
-            setShowConversations(false);
-          }
+        // On mobile, show the chat view
+        if (isMobileView) {
+          setShowConversations(false);
         }
       }
     }
-  }, [username, currentUser, conversations, isMobileView, fetchMessages, fetchRecipientProfile, recipient, activeConversation]);
+  }, [username, currentUser, conversations, isMobileView, fetchMessages, fetchRecipientProfile, fetchConversations]);
   
   // Auto-scroll to the bottom of messages
   useEffect(() => {
@@ -367,72 +327,28 @@ function Chat() {
       
       // Clear the input
       setMessage('');
-        // Send to server
+      
+      // Send to server
       const url = `${endpoint}/chat/send`;
       
-      await axios.post(url, messageData, {
+      const response = await axios.post(url, messageData, {
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` 
         }
       });
       
-      // Use the updateConversationsList function to update the UI immediately
-      updateConversationsList(optimisticMessage);      // After sending the first message, immediately fetch conversations to update the list
+      // After sending the first message, immediately fetch conversations to update the list
       if (!activeConversation.id) {
         console.log('First message in a new conversation - updating conversation list');
-        
-        // Wait a bit for the server to process the message
-        setTimeout(async () => {
-          try {
-            // First fetch the conversations to get the updated conversation list with IDs
-            const updatedConversationsData = await fetchConversations();
-            console.log('Fetched updated conversations:', updatedConversationsData);
-            
-            // After fetching conversations, find the conversation with this recipient
-            const updatedConversation = updatedConversationsData.find(conv => conv.username === activeConversation.username);
-            
-            if (updatedConversation && updatedConversation.participantId) {
-              console.log('Found matching conversation with ID:', updatedConversation.participantId);
-              
-              // Update the active conversation with the ID
-              setActiveConversation({
-                id: updatedConversation.participantId,
-                username: activeConversation.username
-              });
-              
-              // Now fetch messages using the valid participantId
-              fetchMessages(updatedConversation.participantId, activeConversation.username);
-            } else {
-              console.warn('Could not find conversation with username:', activeConversation.username);
-              console.warn('Available conversations:', updatedConversationsData);
-              
-              // Try one more time with a longer delay
-              setTimeout(async () => {
-                const finalAttemptData = await fetchConversations();
-                const finalConversation = finalAttemptData.find(conv => conv.username === activeConversation.username);
-                
-                if (finalConversation && finalConversation.participantId) {
-                  setActiveConversation({
-                    id: finalConversation.participantId,
-                    username: activeConversation.username
-                  });
-                  fetchMessages(finalConversation.participantId, activeConversation.username);
-                }
-              }, 1000);
-            }
-          } catch (error) {
-            console.error('Error updating conversation after first message:', error);
-          }
+        setTimeout(() => {
+          fetchConversations();
         }, 500); // Small delay to allow backend to process
       } else {
         // Immediately fetch updated messages to confirm delivery
         fetchMessages(activeConversation.id, activeConversation.username);
-        
         // Also refresh conversations list to show latest message
-        setTimeout(() => {
-          fetchConversations();
-        }, 500); // Small delay to allow backend to process
+        fetchConversations();
       }
       
     } catch (error) {
