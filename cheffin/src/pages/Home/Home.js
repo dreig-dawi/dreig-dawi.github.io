@@ -414,10 +414,9 @@ function Home() {
                           height: 0,
                           paddingTop: '56.25%' // 16:9 aspect ratio
                         }}
-                      >
-                        {post.contentImages && post.contentImages.length > 0 ? (
+                      >                        {post.contentImages && post.contentImages.length > 0 ? (
                           <Image
-                            src={post.contentImages[0]} 
+                            src={`data:image/png;base64,${post.contentImages[0]}`} 
                             alt={post.title}
                             preview
                             className="card-image"

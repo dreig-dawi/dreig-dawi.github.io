@@ -148,8 +148,7 @@ function ChefProfile() {
       prevPreviews.filter((_, i) => i !== index)
     );
   };
-  
-  const handleSubmitPost = async (e) => {
+    const handleSubmitPost = async (e) => {
     e.preventDefault();
     
     if (!uploadData.title || !uploadData.description || uploadData.images.length === 0) {
@@ -158,20 +157,36 @@ function ChefProfile() {
     }
     
     try {
-      const formData = new FormData();
-      formData.append('title', uploadData.title);
-      formData.append('description', uploadData.description);
-      
-      // Append each image to the formData
-      uploadData.images.forEach((image, index) => {
-        formData.append(`images`, image);
+      // Convert image files to base64 strings
+      const imagePromises = uploadData.images.map(imageFile => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            // Get the base64 string (remove the data:image/xxx;base64, prefix)
+            const base64String = reader.result.split(',')[1];
+            resolve(base64String);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
       });
+
+      const base64Images = await Promise.all(imagePromises);
+
+      // Create JSON payload
+      const postData = {
+        title: uploadData.title,
+        description: uploadData.description,
+        contentImages: base64Images
+      };
       
       const token = localStorage.getItem('authToken');
       
-      const response = await axios.post(`${endpoint}/post/create`, formData, {
+      console.log("Sending post data with", base64Images.length, "images");
+      
+      const response = await axios.post(`${endpoint}/post`, postData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         }
       });
@@ -183,7 +198,13 @@ function ChefProfile() {
       handleCloseUploadDialog();
     } catch (error) {
       console.error('Error creating post:', error);
-      alert('Failed to create post. Please try again.');
+      // Show more detailed error information
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        alert(`Failed to create post: ${error.response.data.message || 'Unknown server error'}`);
+      } else {
+        alert('Failed to create post. Please try again.');
+      }
     }
   };
   
@@ -346,12 +367,11 @@ function ChefProfile() {
             {posts.length > 0 ? (
               posts.map(post => (
                 <Grid item xs={12} sm={6} md={4} key={post.id}>
-                  <Card className="post-card">
-                    <CardMedia
+                  <Card className="post-card">                    <CardMedia
                       component="img"
                       height="200"
                       image={post.contentImages && post.contentImages.length > 0 ? 
-                        post.contentImages[0] : "/icons/chef-hat.svg"}
+                        `data:image/png;base64,${post.contentImages[0]}` : "/icons/chef-hat.svg"}
                       alt={post.title}
                     />
                     <CardContent>
@@ -390,10 +410,9 @@ function ChefProfile() {
         {activeTab === 1 && (
           <Grid container spacing={2}>
             {posts.flatMap(post => 
-              post.contentImages ? post.contentImages.map((image, index) => (
-                <Grid item xs={6} sm={4} md={3} key={`${post.id}-${index}`}>
+              post.contentImages ? post.contentImages.map((image, index) => (                <Grid item xs={6} sm={4} md={3} key={`${post.id}-${index}`}>
                   <img 
-                    src={image} 
+                    src={`data:image/png;base64,${image}`} 
                     alt={`Content by ${chefData.username}`}
                     className="gallery-image"
                   />
