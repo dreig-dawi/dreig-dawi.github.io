@@ -1,0 +1,49 @@
+@import 'primeicons/primeicons.css';
+@import 'primereact/resources/themes/lara-dark-amber/theme.css';
+
+.Home {
+  color: #333;
+}
+
+.chef-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chef-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.post-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.card-image {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chef-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.custom-indicator {
+  background-color: rgba(241, 106, 45, 0.8) !important;
+}
+
+@media (max-width: 768px) {
+  .Home .hero-section {
+    padding: 40px 15px;
+    height: 70vh !important;
+  }
+}
