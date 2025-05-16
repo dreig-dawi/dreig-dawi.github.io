@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 import { endpoint } from '../../Utils/Constants.ts';
 import { 
   Container, Paper, Box, TextField, Button, 
@@ -24,11 +22,13 @@ function Chat() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [conversations, setConversations] = useState([]);
-  const [socket, setSocket] = useState(null);
   const [activeConversation, setActiveConversation] = useState(null);
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
   const [showConversations, setShowConversations] = useState(true);
+  const [error, setError] = useState('');
   
+  // Polling interval reference
+  const pollIntervalRef = useRef(null);
   const messagesEndRef = useRef(null);
   
   // Fetch the list of conversations
@@ -127,8 +127,24 @@ function Chat() {
       setLoading(false);
     }
   }, [isMobileView, fetchRecipientProfile]);
+    // Initialize polling for new messages
+  const startPolling = useCallback(() => {
+    // Clear any existing interval
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+    }
+    
+    // Set up polling every 15 seconds
+    pollIntervalRef.current = setInterval(() => {
+      if (activeConversation?.id) {
+        fetchMessages(activeConversation.id, activeConversation.username);
+      }
+      fetchConversations();
+    }, 15000); // Poll every 15 seconds
+    
+  }, [activeConversation, fetchMessages, fetchConversations]);
   
-  // Initialize socket connection
+  // Check authentication and start initial data fetch
   useEffect(() => {
     // Check if user is authenticated
     if (!isAuthenticated()) {
@@ -136,88 +152,29 @@ function Chat() {
       return;
     }
     
-    const token = localStorage.getItem('authToken');
-    const stompClient = new Client({
-      webSocketFactory: () => new SockJS(`${endpoint}/ws`),
-      connectHeaders: {
-        token: token
-      },
-      debug: function (str) {
-        console.log('STOMP: ' + str);
-      },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000
-    });
-
-    stompClient.onConnect = (frame) => {
-      console.log('Connected to STOMP server:', frame);
-      
-      // Subscribe to personal queue for receiving messages
-      if (currentUser) {
-        stompClient.subscribe(`/user/queue/messages`, (message) => {
-          const newMessage = JSON.parse(message.body);
-          console.log('Received message:', newMessage);
-          
-          setMessages(prevMessages => {
-            // Check if message already exists to prevent duplicates
-            const messageExists = prevMessages.some(m => 
-              m.id === newMessage.id || 
-              (m.timestamp === newMessage.timestamp && 
-               m.content === newMessage.content &&
-               m.senderUsername === newMessage.senderUsername)
-            );
-            
-            if (messageExists) {
-              return prevMessages;
-            }
-            return [...prevMessages, newMessage];
-          });
-          
-          // Update the conversations list if needed
-          updateConversationsList(newMessage);
-        });
-      }
-    };
-    
-    stompClient.onStompError = (frame) => {
-      console.error('STOMP error:', frame.headers.message);
-      console.error('Additional details:', frame.body);
-    };
-    
-    stompClient.activate();
-    setSocket(stompClient);
-    
-    // Fetch conversations (list of people the user has chatted with)
+    // Fetch initial data
     fetchConversations();
     
-    // Cleanup on unmount
+    // Cleanup interval on unmount
     return () => {
-      if (stompClient && stompClient.connected) {
-        stompClient.deactivate();
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
       }
     };
-  }, [isAuthenticated, navigate, currentUser, updateConversationsList, fetchConversations]);
+  }, [isAuthenticated, navigate, fetchConversations]);
   
-  // Error handling for WebSocket
+  // Start polling for new messages when active conversation changes
   useEffect(() => {
-    if (!socket) return;
-    
-    const stompClient = socket;
-    
-    // Add subscription for error messages
-    if (currentUser) {
-      stompClient.subscribe('/user/queue/errors', (message) => {
-        const errorMessage = message.body;
-        console.error('WebSocket error:', errorMessage);
-        // You could also show this to the user with a toast/notification
-      });
+    if (activeConversation) {
+      startPolling();
     }
     
     return () => {
-      // Cleanup subscriptions when component unmounts
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
     };
-  }, [socket, currentUser]);
+  }, [activeConversation, startPolling]);
   
   // Handle window resize for responsive layout
   useEffect(() => {
@@ -259,34 +216,52 @@ function Chat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-  
-  const handleSendMessage = () => {
-    if (!message.trim() || !socket || !activeConversation) return;
+    const handleSendMessage = async () => {
+    if (!message.trim() || !activeConversation) return;
     
-    const messageData = {
-      recipientUsername: activeConversation.username,
-      content: message
-    };
-    
-    // Send message via STOMP
-    socket.publish({
-      destination: '/app/send_message',
-      body: JSON.stringify(messageData)
-    });
-    
-    // Optimistically add message to UI (will be confirmed by socket event)
-    const optimisticMessage = {
-      senderId: currentUser.id,
-      senderUsername: currentUser.username,
-      recipientUsername: activeConversation.username,
-      content: message,
-      timestamp: new Date().toISOString()
-    };
-    
-    setMessages(prevMessages => [...prevMessages, optimisticMessage]);
-    
-    // Clear the input
-    setMessage('');
+    try {
+      const token = localStorage.getItem('authToken');
+      const messageData = {
+        recipientUsername: activeConversation.username,
+        content: message.trim()
+      };
+      
+      // Optimistically add message to UI
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        senderId: currentUser.id,
+        senderUsername: currentUser.username,
+        recipientUsername: activeConversation.username,
+        content: message.trim(),
+        timestamp: new Date().toISOString()
+      };
+      
+      // Add to messages
+      setMessages(prevMessages => [...prevMessages, optimisticMessage]);
+      
+      // Clear the input
+      setMessage('');
+      
+      // Send to server
+      await axios.post(`${endpoint}/chat/send`, messageData, {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        }
+      });
+      
+      // Immediately fetch updated messages to confirm delivery
+      if (activeConversation.id) {
+        fetchMessages(activeConversation.id, activeConversation.username);
+      }
+      
+      // Also refresh conversations list to show latest message
+      fetchConversations();
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setError('Failed to send message. Please try again.');
+    }
   };
   
   const handleKeyPress = (e) => {
@@ -312,9 +287,26 @@ function Chat() {
       </Box>
     );
   }
-  
-  return (
+    return (
     <Container maxWidth="lg" className="chat-container">
+      {error && (
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 2, 
+            mb: 2, 
+            bgcolor: '#ffebee', 
+            color: '#c62828',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="body2">{error}</Typography>
+          <Button size="small" onClick={() => setError('')}>Dismiss</Button>
+        </Paper>
+      )}
+      
       <Paper elevation={3} className="chat-paper">
         <Box className="chat-wrapper">
           {/* Conversations List */}
