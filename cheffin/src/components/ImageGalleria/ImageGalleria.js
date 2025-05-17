@@ -118,14 +118,25 @@ export default function ImageGalleria({ images, title }) {
                 <img src={item.thumbnailImageSrc} alt={item.alt} style={{ display: 'block' }} />
             </div>
         );
-    };
-
-    const itemTemplate = (item) => {
+    };    const itemTemplate = (item) => {
         if (isFullScreen) {
             return <img src={item.itemImageSrc} alt={item.alt} style={{ maxWidth: '100%', maxHeight: '100vh', display: 'block' }} />;
         }
 
-        return <img src={item.itemImageSrc} alt={item.alt} style={{ width: '100%', display: 'block', objectFit: 'contain' }} />;
+        return <img 
+            src={item.itemImageSrc} 
+            alt={item.alt} 
+            style={{ 
+                width: 'auto', 
+                height: 'auto', 
+                maxWidth: '85%',
+                maxHeight: '300px',
+                display: 'block', 
+                objectFit: 'contain',
+                margin: '0 auto',
+                borderRadius: '4px'
+            }} 
+        />;
     };
 
     const renderFooter = () => {
@@ -183,8 +194,7 @@ export default function ImageGalleria({ images, title }) {
     });
 
     return (
-        <div className="galleria-container">
-            <Galleria 
+        <div className="galleria-container">            <Galleria 
                 ref={galleria} 
                 value={formattedImages} 
                 activeIndex={activeIndex} 
@@ -201,7 +211,13 @@ export default function ImageGalleria({ images, title }) {
                 thumbnail={thumbnailTemplate} 
                 footer={footer}
                 className={galleriaClassName}
-                style={{ width: '100%' }}
+                style={{ 
+                    width: '100%', 
+                    maxWidth: '800px',
+                    margin: '0 auto',
+                    height: '100%', 
+                    minHeight: '380px' 
+                }}
             />
         </div>
     );

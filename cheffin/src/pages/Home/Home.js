@@ -391,11 +391,10 @@ function Home() {
               </Typography>
             </Box>
           </Box>
-          
-          <Grid container spacing={4}>
+            <Grid container spacing={4} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto' }}>
             {filteredPosts.length > 0 ? (
               filteredPosts.map((post, index) => (
-                <Grid item xs={12} md={6} lg={4} key={post.id}>
+                <Grid item xs={12} md={6} lg={6} key={post.id}>
                   <Fade in={true} timeout={1000} style={{ transitionDelay: `${150 * index}ms` }}>
                     <Card 
                       className="post-card" 
@@ -411,21 +410,36 @@ function Home() {
                         component="div"
                         sx={{ 
                           position: 'relative',
-                          height: 240,
-                          overflow: 'hidden'
+                          height: '100%',
+                          width: '100%',
+                          maxWidth: '800px',
+                          margin: '0 auto',
+                          overflow: 'hidden',
+                          padding: '195px'
                         }}
-                      >                        {post.contentImages && post.contentImages.length > 0 ? (                          post.contentImages.length > 1 ? (
+                      >{post.contentImages && post.contentImages.length > 0 ? (                          post.contentImages.length > 1 ? (
                             <ImageGalleria 
                               images={post.contentImages} 
                               title={post.title} 
                             />
-                          ) : (
-                            <Image
+                          ) : (                            
+                          <Image
                               src={`data:image/png;base64,${post.contentImages[0]}`}
                               alt={post.title}
                               preview
                               className="card-image"                              pt={{
-                                image: { className: 'w-100 h-100', style: { objectFit: 'contain', backgroundColor: '#f7f7f7' } },
+                                image: { 
+                                  className: 'w-100 h-100', 
+                                  style: { 
+                                    objectFit: 'contain', 
+                                    backgroundColor: '#f7f7f7',
+                                    width: '100%',
+                                    height: 'auto',
+                                    maxHeight: '100%',
+                                    maxWidth: '100%',
+                                    margin: '0 auto'
+                                  } 
+                                },
                                 indicator: { 
                                   className: 'custom-indicator',
                                   icon: <img src="/icons/mini-chef-hat.svg" alt="Chef icon" className="chef-icon" />

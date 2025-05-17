@@ -362,33 +362,44 @@ function ChefProfile() {
         </Box>
       )}
       
-      {/* Content Display */}
-      <Box role="tabpanel" hidden={activeTab !== 0}>
+      {/* Content Display */}      <Box role="tabpanel" hidden={activeTab !== 0}>
         {activeTab === 0 && (
-          <Grid container spacing={3}>
+          <Grid container spacing={3} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto' }}>
             {posts.length > 0 ? (
               posts.map(post => (
-                <Grid item xs={12} sm={6} md={4} key={post.id}>
-                  <Card className="post-card">                    
-                    <CardMedia
+                <Grid item xs={12} sm={6} md={6} key={post.id}>
+                  <Card className="post-card">                      <CardMedia
                       component="div"
                       sx={{ 
                         position: 'relative',
-                        height: 240,
+                        height: 380,
+                        width: '100%',
+                        maxWidth: '800px',
+                        margin: '0 auto',
                         overflow: 'hidden'
                       }}
-                    >                       {post.contentImages && post.contentImages.length > 0 ? (                        post.contentImages.length > 1 ? (
+                    >{post.contentImages && post.contentImages.length > 0 ? (                        post.contentImages.length > 1 ? (
                           <ImageGalleria 
                             images={post.contentImages} 
                             title={post.title} 
-                          />) : (
-                          <Image
+                          />) : (                          <Image
                             src={`data:image/png;base64,${post.contentImages[0]}`}
                             alt={post.title}
                             preview
                             className="card-image"
                             pt={{
-                              image: { className: 'w-100 h-100', style: { objectFit: 'contain', backgroundColor: '#f7f7f7' } },
+                              image: { 
+                                className: 'w-100 h-100', 
+                                style: { 
+                                  objectFit: 'contain', 
+                                  backgroundColor: '#f7f7f7',
+                                  width: 'auto',
+                                  height: 'auto',
+                                  maxHeight: '320px',
+                                  maxWidth: '90%',
+                                  margin: '0 auto'
+                                } 
+                              },
                               indicator: { 
                                 className: 'custom-indicator',
                                 icon: <img src="/icons/mini-chef-hat.svg" alt="Chef icon" className="chef-icon" />
