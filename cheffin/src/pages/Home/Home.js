@@ -252,7 +252,7 @@ function Home() {
             </Button>
           </Box>
           
-          <Grid container spacing={3}>
+          <Grid container spacing={3} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto', justifyContent: 'center' }}>
             {chefs.length > 0 ? (
               chefs.map((chef, index) => (
                 <Grid item xs={12} sm={6} md={3} key={chef.id}>
@@ -391,7 +391,7 @@ function Home() {
               </Typography>
             </Box>
           </Box>
-            <Grid container spacing={4} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto' }}>
+            <Grid container spacing={2} sx={{ width: '100%', maxWidth: '1600px', mx: 'auto', justifyContent: 'center' }}>
             {filteredPosts.length > 0 ? (
               filteredPosts.map((post, index) => (
                 <Grid item xs={12} md={6} lg={6} key={post.id}>
@@ -401,12 +401,13 @@ function Home() {
                       sx={{ 
                         borderRadius: '12px',
                         overflow: 'hidden',
-                        height: '100%',
+                        width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
                         boxShadow: '0 8px 20px rgba(0,0,0,0.08)'
                       }}
-                    >                      <CardMedia
+                    >                      
+                    <CardMedia
                         component="div"
                         sx={{ 
                           position: 'relative',
@@ -415,7 +416,10 @@ function Home() {
                           maxWidth: '800px',
                           margin: '0 auto',
                           overflow: 'hidden',
-                          padding: '195px'
+                          paddingLeft: '180px',
+                          paddingRight: '180px',
+                          paddingTop: '200px',
+                          paddingBottom: '200px',
                         }}
                       >{post.contentImages && post.contentImages.length > 0 ? (                          post.contentImages.length > 1 ? (
                             <ImageGalleria 

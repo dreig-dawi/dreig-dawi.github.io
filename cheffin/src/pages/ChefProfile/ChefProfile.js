@@ -362,9 +362,10 @@ function ChefProfile() {
         </Box>
       )}
       
-      {/* Content Display */}      <Box role="tabpanel" hidden={activeTab !== 0}>
+      {/* Content Display */}      
+      <Box role="tabpanel" hidden={activeTab !== 0} >
         {activeTab === 0 && (
-          <Grid container spacing={3} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto' }}>
+          <Grid container spacing={3} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto', justifyContent: 'center' }}>
             {posts.length > 0 ? (
               posts.map(post => (
                 <Grid item xs={12} sm={6} md={6} key={post.id}>
@@ -372,17 +373,26 @@ function ChefProfile() {
                       component="div"
                       sx={{ 
                         position: 'relative',
-                        height: 380,
+                        height: '100%',
                         width: '100%',
                         maxWidth: '800px',
                         margin: '0 auto',
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        paddingLeft: '180px',
+                        paddingRight: '180px',
+                        paddingTop: '200px',
+                        paddingBottom: '200px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+
                       }}
                     >{post.contentImages && post.contentImages.length > 0 ? (                        post.contentImages.length > 1 ? (
                           <ImageGalleria 
                             images={post.contentImages} 
                             title={post.title} 
-                          />) : (                          <Image
+                          />) : (                          
+                          <Image
                             src={`data:image/png;base64,${post.contentImages[0]}`}
                             alt={post.title}
                             preview
@@ -393,11 +403,11 @@ function ChefProfile() {
                                 style: { 
                                   objectFit: 'contain', 
                                   backgroundColor: '#f7f7f7',
-                                  width: 'auto',
+                                  width: '100%',
                                   height: 'auto',
-                                  maxHeight: '320px',
-                                  maxWidth: '90%',
-                                  margin: '0 auto'
+                                  maxHeight: '100%',
+                                  maxWidth: '100%',
+                                  margin: '0 auto',
                                 } 
                               },
                               indicator: { 
