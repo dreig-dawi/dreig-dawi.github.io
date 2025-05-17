@@ -15,6 +15,7 @@ import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import StarIcon from '@mui/icons-material/Star';
 import LocalDiningIcon from '@mui/icons-material/LocalDining';
 import { Image } from 'primereact/image';
+import ImageGalleria from '../../components/ImageGalleria/ImageGalleria';
 import './Home.css';
 
 function Home() {
@@ -406,28 +407,32 @@ function Home() {
                         flexDirection: 'column',
                         boxShadow: '0 8px 20px rgba(0,0,0,0.08)'
                       }}
-                    >
-                      <CardMedia
+                    >                      <CardMedia
                         component="div"
                         sx={{ 
                           position: 'relative',
-                          height: 0,
-                          paddingTop: '56.25%' // 16:9 aspect ratio
+                          height: 240,
+                          overflow: 'hidden'
                         }}
-                      >                        {post.contentImages && post.contentImages.length > 0 ? (
-                          <Image
-                            src={`data:image/png;base64,${post.contentImages[0]}`} 
-                            alt={post.title}
-                            preview
-                            className="card-image"
-                            pt={{
-                              image: { className: 'w-100 h-100' },
-                              indicator: { 
-                                className: 'custom-indicator',
-                                icon: <img src="/icons/mini-chef-hat.svg" alt="Chef icon" className="chef-icon" />
-                              }
-                            }}
-                          />
+                      >                        {post.contentImages && post.contentImages.length > 0 ? (                          post.contentImages.length > 1 ? (
+                            <ImageGalleria 
+                              images={post.contentImages} 
+                              title={post.title} 
+                            />
+                          ) : (
+                            <Image
+                              src={`data:image/png;base64,${post.contentImages[0]}`}
+                              alt={post.title}
+                              preview
+                              className="card-image"                              pt={{
+                                image: { className: 'w-100 h-100', style: { objectFit: 'contain', backgroundColor: '#f7f7f7' } },
+                                indicator: { 
+                                  className: 'custom-indicator',
+                                  icon: <img src="/icons/mini-chef-hat.svg" alt="Chef icon" className="chef-icon" />
+                                }
+                              }}
+                            />
+                          )
                         ) : (
                           <Box
                             sx={{

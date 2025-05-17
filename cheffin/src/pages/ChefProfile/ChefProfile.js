@@ -14,6 +14,8 @@ import MessageIcon from '@mui/icons-material/Message';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { Image } from 'primereact/image';
+import ImageGalleria from '../../components/ImageGalleria/ImageGalleria';
 import './ChefProfile.css';
 
 function ChefProfile() {
@@ -367,13 +369,55 @@ function ChefProfile() {
             {posts.length > 0 ? (
               posts.map(post => (
                 <Grid item xs={12} sm={6} md={4} key={post.id}>
-                  <Card className="post-card">                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={post.contentImages && post.contentImages.length > 0 ? 
-                        `data:image/png;base64,${post.contentImages[0]}` : "/icons/chef-hat.svg"}
-                      alt={post.title}
-                    />
+                  <Card className="post-card">                    
+                    <CardMedia
+                      component="div"
+                      sx={{ 
+                        position: 'relative',
+                        height: 240,
+                        overflow: 'hidden'
+                      }}
+                    >                       {post.contentImages && post.contentImages.length > 0 ? (                        post.contentImages.length > 1 ? (
+                          <ImageGalleria 
+                            images={post.contentImages} 
+                            title={post.title} 
+                          />) : (
+                          <Image
+                            src={`data:image/png;base64,${post.contentImages[0]}`}
+                            alt={post.title}
+                            preview
+                            className="card-image"
+                            pt={{
+                              image: { className: 'w-100 h-100', style: { objectFit: 'contain', backgroundColor: '#f7f7f7' } },
+                              indicator: { 
+                                className: 'custom-indicator',
+                                icon: <img src="/icons/mini-chef-hat.svg" alt="Chef icon" className="chef-icon" />
+                              }
+                            }}
+                            />
+                        )
+                      ) : (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            bgcolor: '#f7f7f7'
+                          }}
+                        >
+                          <img 
+                            src="/icons/chef-hat.svg" 
+                            alt="Chef hat" 
+                            style={{ width: '40%', opacity: 0.4 }}
+                          />
+                        </Box>
+                      )}
+                    </CardMedia>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>{post.title}</Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -404,21 +448,27 @@ function ChefProfile() {
             )}
           </Grid>
         )}
-      </Box>
-      
-      <Box role="tabpanel" hidden={activeTab !== 1}>
+      </Box>      <Box role="tabpanel" hidden={activeTab !== 1}>
         {activeTab === 1 && (
           <Grid container spacing={2}>
-            {posts.flatMap(post => 
-              post.contentImages ? post.contentImages.map((image, index) => (                <Grid item xs={6} sm={4} md={3} key={`${post.id}-${index}`}>
-                  <img 
-                    src={`data:image/png;base64,${image}`} 
-                    alt={`Content by ${chefData.username}`}
-                    className="gallery-image"
-                  />
-                </Grid>
-              )) : []
-            )}
+            {posts.filter(post => post.contentImages && post.contentImages.length > 0).map(post => (
+              <Grid item xs={12} sm={6} md={4} key={post.id}>
+                <Card sx={{ height: '100%', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.08)' }}>
+                  <Typography variant="h6" sx={{ p: 2, pb: 1 }}>{post.title}</Typography>
+                  <Box sx={{ position: 'relative', height: 240, overflow: 'hidden' }}>
+                    <ImageGalleria 
+                      images={post.contentImages} 
+                      title={post.title} 
+                    />
+                  </Box>
+                  <Box sx={{ p: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {post.contentImages.length} {post.contentImages.length === 1 ? 'image' : 'images'} in this recipe
+                    </Typography>
+                  </Box>
+                </Card>
+              </Grid>
+            ))}
             
             {posts.length === 0 && (
               <Box sx={{ width: '100%', textAlign: 'center', py: 5 }}>
@@ -481,11 +531,10 @@ function ChefProfile() {
               <Grid container spacing={1} sx={{ mt: 2 }}>
                 {imagePreview.map((preview, index) => (
                   <Grid item xs={4} key={index}>
-                    <Box sx={{ position: 'relative' }}>
-                      <img
+                    <Box sx={{ position: 'relative' }}>                      <img
                         src={preview}
                         alt={`Preview ${index}`}
-                        style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '4px' }}
+                        style={{ width: '100%', height: '80px', objectFit: 'contain', borderRadius: '4px', backgroundColor: '#f7f7f7' }}
                       />
                       <IconButton
                         size="small"
