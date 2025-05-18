@@ -5,7 +5,7 @@ import axios from 'axios';
 import { endpoint } from '../../Utils/Constants.ts';
 import { 
   Container, Grid, Box, Typography, Avatar, 
-  Button, Tabs, Tab, Card, CardMedia, CardContent,
+  Button, Card, CardMedia, CardContent,
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, IconButton, CircularProgress
 } from '@mui/material';
@@ -18,6 +18,8 @@ import LocalDiningIcon from '@mui/icons-material/LocalDining';
 import { Image } from 'primereact/image';
 import ImageGalleria from '../../components/ImageGalleria/ImageGalleria';
 import './ChefProfile.css';
+import './experience-badge.css';
+import './chef-bio-pattern.css';
 
 function ChefProfile() {
   const { username } = useParams();
@@ -26,9 +28,7 @@ function ChefProfile() {
   
   const [loading, setLoading] = useState(true);
   const [chefData, setChefData] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [activeTab, setActiveTab] = useState(0);
-  const [openUploadDialog, setOpenUploadDialog] = useState(false);
+  const [posts, setPosts] = useState([]);  const [openUploadDialog, setOpenUploadDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [uploadData, setUploadData] = useState({
     title: '',
@@ -77,12 +77,7 @@ function ChefProfile() {
     
     fetchChefData();
   }, [username, currentUser, isAuthenticated, isChef, isCurrentChef]);
-  
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-  };
-  
-  const handleOpenUploadDialog = () => {
+    const handleOpenUploadDialog = () => {
     setOpenUploadDialog(true);
   };
   
@@ -327,22 +322,33 @@ function ChefProfile() {
               zIndex: 0
             }}
           />
-          <Box className="profile-header" sx={{ position: 'relative', zIndex: 1 }}>
-            <Avatar
-              src={chefData.profilePicture || '/icons/chef-hat.svg'}
+          <Box className="profile-header" sx={{ position: 'relative', zIndex: 1 }}>            <Avatar
+              src={chefData.profilePicture || '/icons/orange-chef.png'}
               sx={{
                 width: 150,
                 height: 150,
                 border: '4px solid white',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.15)'
+                boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                backgroundColor: 'white',
               }}
             />
       
-            <Box className="profile-info">
+            <Box className="profile-info">              
               <Typography variant="h4" sx={{ textShadow: '1px 1px 3px rgba(0,0,0,0.2)' }}>{chefData.username}</Typography>
-              <Typography variant="subtitle1" sx={{ color: 'rgba(255,255,255,0.9)' }}>
+              <Typography variant="subtitle1" sx={{ color: 'rgba(255,255,255,0.9)', mb: 0.5 }}>
                 {chefData.specialty}
-              </Typography>
+              </Typography>              
+              {chefData.experience && (
+                <Typography variant="subtitle1" className="experience-badge" sx={{ 
+                  color: 'rgba(255,255,255,0.95)',
+                  fontWeight: '500',
+                  mb: 1.5,
+                  display: 'inline-flex'
+                }}>
+                  <LocalDiningIcon />
+                  {chefData.experience} years of culinary experience
+                </Typography>
+              )}
                 <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
                 {isCurrentChef ? (
                   <Button
@@ -376,43 +382,56 @@ function ChefProfile() {
               </Box>
             </Box>
           </Box>
-        </Box>
-          {/* Chef Bio */}
+        </Box>        
+        {/* Chef Bio */}        
         <Box className="chef-bio" sx={{
           my: 4,
           bgcolor: 'white',
           borderRadius: '12px',
           padding: '1.5rem',
           boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
-          border: '1px solid rgba(241, 106, 45, 0.1)'
+          border: '1px solid rgba(241, 106, 45, 0.1)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <Typography variant="h6" gutterBottom sx={{
-            color: '#F16A2D',
-            position: 'relative',
-            display: 'inline-block',
-            pb: 1,
-            '&:after': {
-              content: '""',
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              width: '40px',
-              height: '3px',
-              backgroundColor: '#F16A2D'
-            }
-          }}>
-            About
-          </Typography>
-          <Typography variant="body1">{chefData.bio}</Typography>
-          {chefData.experience && (
-            <Typography variant="body2" sx={{ mt: 1, color: '#666', display: 'flex', alignItems: 'center' }}>
-              <LocalDiningIcon sx={{ mr: 1, fontSize: 18, color: '#F16A2D' }}/>
-              {chefData.experience} years of culinary experience
+          <div className="chef-bio-pattern"></div>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6" gutterBottom sx={{
+              color: '#F16A2D',
+              position: 'relative',
+              display: 'inline-block',
+              pb: 1,
+              mb: 0,
+              '&:after': {
+                content: '""',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                width: '40px',
+                height: '3px',
+                backgroundColor: '#F16A2D'
+              }
+            }}>
+              About {chefData.username}
+            </Typography>
+          </Box>
+          {chefData.bio ? (
+            <Typography variant="body1" sx={{ 
+              lineHeight: 1.7, 
+              color: '#444',
+              position: 'relative',
+              zIndex: 1
+            }}>{chefData.bio}</Typography>
+          ) : (
+            <Typography variant="body1" sx={{ color: '#666', fontStyle: 'italic' }}>
+              This chef hasn't added a bio yet.
             </Typography>
           )}
-        </Box>
-      
-        {/* Content Tabs */}      <Box sx={{
+        </Box>        {/* Content Tabs */}      
+        <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             borderBottom: 1,
             borderColor: 'divider',
             mb: 3,
@@ -427,31 +446,26 @@ function ChefProfile() {
               background: 'linear-gradient(90deg, rgba(241, 106, 45, 0.2) 0%, rgba(241, 106, 45, 0.5) 50%, rgba(241, 106, 45, 0.2) 100%)'
             }
           }}>
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            sx={{
-              '& .MuiTabs-indicator': {
-                backgroundColor: '#F16A2D',
-                height: '3px',
-                borderRadius: '3px 3px 0 0'
-              }
-            }}
-          ><Tab label="Recipes" sx={{
-              color: '#666',
-              '&.Mui-selected': {
-                color: '#F16A2D',
-                fontWeight: 'medium'
-              }
-            }} />
-            <Tab label="Gallery" sx={{
-              color: '#666',
-              '&.Mui-selected': {
-                color: '#F16A2D',
-                fontWeight: 'medium'
-              }
-            }} />
-          </Tabs>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <LocalDiningIcon sx={{ color: '#F16A2D', mr: 1, fontSize: 22 }} />
+            <Typography variant="h6" sx={{ 
+              color: '#444', 
+              fontWeight: 500,
+              borderBottom: '3px solid #F16A2D',
+              paddingBottom: '8px',
+              paddingRight: '10px',
+              paddingLeft: '2px'
+            }}>
+              Recipes
+            </Typography>
+          </Box>
+          <Typography variant="body2" sx={{ 
+            color: '#777', 
+            fontStyle: 'italic',
+            mr: 2 
+          }}>
+            {posts.length} {posts.length === 1 ? 'recipe' : 'recipes'} shared
+          </Typography>
         </Box>
           {/* Add New Post Button (for chef only) */}
         {isCurrentChef && (
@@ -469,176 +483,170 @@ function ChefProfile() {
               Add New Post
             </Button>
           </Box>
-        )}
-      
-        {/* Content Display */}        <Box role="tabpanel" hidden={activeTab !== 0}>
-          {activeTab === 0 && (
-            <Grid container spacing={3} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto', justifyContent: 'center' }}>
-              {posts.length > 0 ? (
-                posts.map(post => (                <Grid item xs={12} sm={6} md={6} key={post.id}>
-                    <Card className="post-card" sx={{
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
-                      '&:hover': {
-                        boxShadow: '0 12px 28px rgba(241, 106, 45, 0.15)',
-                        transform: 'translateY(-5px)'
-                      }
-                    }}>                      <CardMedia
-                        component="div"
-                        sx={{
-                          position: 'relative',
-                          height: '100%',
-                          width: '100%',
-                          maxWidth: '800px',
-                          margin: '0 auto',
-                          overflow: 'hidden',
-                          paddingLeft: '180px',
-                          paddingRight: '180px',
-                          paddingTop: '200px',
-                          paddingBottom: '200px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >{post.contentImages && post.contentImages.length > 0 ? (                        post.contentImages.length > 1 ? (
-                            <ImageGalleria
-                              images={post.contentImages}
-                              title={post.title}
-                            />) : (
-                            <Image
-                              src={`data:image/png;base64,${post.contentImages[0]}`}
-                              alt={post.title}
-                              preview
-                              className="card-image"
-                              pt={{
-                                image: {
-                                  className: 'w-100 h-100',
-                                  style: {
-                                    objectFit: 'contain',
-                                    backgroundColor: '#f7f7f7',
-                                    width: '100%',
-                                    height: 'auto',
-                                    maxHeight: '100%',
-                                    maxWidth: '100%',
-                                    margin: '0 auto',
-                                  }
-                                },
-                                indicator: {
-                                  className: 'custom-indicator',
-                                  icon: <img src="/icons/mini-chef-hat.svg" alt="Chef icon" className="chef-icon" />
-                                }
-                              }}
-                              />
-                          )
-                        ) : (
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              width: '100%',
-                              height: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              bgcolor: '#f7f7f7'
-                            }}
-                          >
-                            <img
-                              src="/icons/chef-hat.svg"
-                              alt="Chef hat"
-                              style={{ width: '40%', opacity: 0.4 }}
-                            />
-                          </Box>
-                        )}
-                      </CardMedia>
-                      <CardContent>                      <Typography variant="h6" gutterBottom sx={{
-                          color: '#F16A2D',
-                          fontWeight: 500
-                        }}>{post.title}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {post.description.length > 120 ?
-                            `${post.description.substring(0, 120)}...` : post.description}
-                        </Typography>
-      
-                        {isCurrentChef && (
-                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>                          <IconButton
-                              onClick={() => handleDeletePost(post.id)}
-                              sx={{
-                                color: 'white',
-                                background: 'linear-gradient(135deg, #f48b4a 0%, #F16A2D 100%) !important',
-                                '&:hover': { opacity: 0.9 },
-                                boxShadow: '0 4px 8px rgba(241, 106, 45, 0.2)'
-                              }}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Box>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))
-              ) : (
-                <Box sx={{ width: '100%', textAlign: 'center', py: 5 }}>              <Typography variant="h6" sx={{
-                  color: '#666',
-                  p: 4,
-                  bgcolor: 'rgba(241, 106, 45, 0.05)',
-                  borderRadius: '12px'
-                }}>
-                  No recipes posted yet
-                </Typography>
-                </Box>
-              )}
-            </Grid>
-          )}
-        </Box>
-        <Box role="tabpanel" hidden={activeTab !== 1}>
-          {activeTab === 1 && (
-            <Grid container spacing={2}>
-              {posts.filter(post => post.contentImages && post.contentImages.length > 0).map(post => (              <Grid item xs={12} sm={6} md={4} key={post.id}>
-                  <Card sx={{
-                    height: '100%',
+        )}        {/* Content Display */}
+        <Box role="tabpanel">
+          <Grid container spacing={3} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto', justifyContent: 'center' }}>            {posts.length > 0 ? (
+              posts.map(post => (
+                <Grid item xs={12} sm={6} md={6} key={post.id}>
+                  <Card className="post-card" sx={{
                     borderRadius: '12px',
                     overflow: 'hidden',
                     boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                     '&:hover': {
                       boxShadow: '0 12px 28px rgba(241, 106, 45, 0.15)',
                       transform: 'translateY(-5px)'
-                    },
-                    position: 'relative'
+                    }
                   }}>
-                    <Typography variant="h6" sx={{ p: 2, pb: 1, color: '#F16A2D', fontWeight: 500 }}>{post.title}</Typography>
-                    <Box sx={{ position: 'relative', height: 240, overflow: 'hidden' }}>
-                      <ImageGalleria
-                        images={post.contentImages}
-                        title={post.title}
-                      />
-                    </Box>
-                    <Box sx={{ p: 2 }}>
+                    <CardMedia
+                      component="div"
+                      sx={{
+                        position: 'relative',
+                        height: '100%',
+                        width: '100%',
+                        maxWidth: '800px',
+                        margin: '0 auto',
+                        overflow: 'hidden',
+                        paddingLeft: '180px',
+                        paddingRight: '180px',
+                        paddingTop: '200px',
+                        paddingBottom: '200px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >{post.contentImages && post.contentImages.length > 0 ? (
+                        post.contentImages.length > 1 ? (
+                          <ImageGalleria
+                            images={post.contentImages}
+                            title={post.title}
+                          />) : (
+                          <Image
+                            src={`data:image/png;base64,${post.contentImages[0]}`}
+                            alt={post.title}
+                            preview
+                            className="card-image"
+                            pt={{
+                              image: {
+                                className: 'w-100 h-100',
+                                style: {
+                                  objectFit: 'contain',
+                                  backgroundColor: '#f7f7f7',
+                                  width: '100%',
+                                  height: 'auto',
+                                  maxHeight: '100%',
+                                  maxWidth: '100%',
+                                  margin: '0 auto',
+                                }
+                              },
+                              indicator: {
+                                className: 'custom-indicator',
+                                icon: <img src="/icons/mini-chef-hat.svg" alt="Chef icon" className="chef-icon" />
+                              }
+                            }}
+                          />
+                        )
+                      ) : (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            bgcolor: '#f7f7f7'
+                          }}
+                        >
+                          <img                            src="/icons/orange-chef.png"
+                            alt="Chef"
+                            style={{ width: '40%', opacity: 0.4 }}
+                          />
+                        </Box>
+                      )}
+                    </CardMedia>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom sx={{
+                        color: '#F16A2D',
+                        fontWeight: 500
+                      }}>{post.title}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {post.contentImages.length} {post.contentImages.length === 1 ? 'image' : 'images'} in this recipe
+                        {post.description.length > 120 ?
+                          `${post.description.substring(0, 120)}...` : post.description}
                       </Typography>
-                    </Box>
+    
+                      {isCurrentChef && (
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                          <IconButton
+                            onClick={() => handleDeletePost(post.id)}
+                            sx={{
+                              color: 'white',
+                              background: 'linear-gradient(135deg, #f48b4a 0%, #F16A2D 100%) !important',
+                              '&:hover': { opacity: 0.9 },
+                              boxShadow: '0 4px 8px rgba(241, 106, 45, 0.2)'
+                            }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </CardContent>
                   </Card>
                 </Grid>
-              ))}
-      
-              {posts.length === 0 && (
-                <Box sx={{ width: '100%', textAlign: 'center', py: 5 }}>              <Typography variant="h6" sx={{
-                  color: '#666',
-                  p: 4,
-                  bgcolor: 'rgba(241, 106, 45, 0.05)',
-                  borderRadius: '12px'
+              ))
+            ) : (              <Grid item xs={12}>
+                <Box sx={{ 
+                  textAlign: 'center', 
+                  py: 5,
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,248,248,0.95) 100%)',
+                  borderRadius: '12px',
+                  border: '1px dashed rgba(241, 106, 45, 0.3)',
+                  padding: '3rem',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)'
                 }}>
-                  No images in gallery
-                </Typography>
+                  <Box 
+                    sx={{
+                      width: '60px',
+                      height: '60px',
+                      backgroundImage: 'url(/icons/chef-hat.svg)',
+                      backgroundSize: 'contain',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                      opacity: 0.6,
+                      mb: 2,
+                      mx: 'auto'
+                    }} 
+                  />
+                  <Typography variant="h6" sx={{ color: '#666', mb: 1 }}>
+                    No recipes shared yet
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: '#888', maxWidth: '500px', mx: 'auto' }}>
+                    {isCurrentChef 
+                      ? "You haven't shared any recipes yet. Add your first recipe to showcase your culinary skills!"
+                      : `${chefData.username} hasn't shared any recipes yet. Check back later for delicious updates!`
+                    }
+                  </Typography>
+                  
+                  {isCurrentChef && (
+                    <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      onClick={handleOpenUploadDialog}
+                      sx={{
+                        backgroundImage: 'linear-gradient(135deg, #f48b4a 0%, #F16A2D 100%) !important',
+                        '&:hover': { opacity: 0.9 },
+                        boxShadow: '0 4px 12px rgba(241, 106, 45, 0.25)',
+                        mt: 3
+                      }}
+                    >
+                      Add Your First Recipe
+                    </Button>
+                  )}
                 </Box>
-              )}
-            </Grid>
-          )}
+              </Grid>
+            )}
+          </Grid>
         </Box>
       
         {/* Upload Content Dialog */}
@@ -759,9 +767,7 @@ function ChefProfile() {
                 value={editProfileData.specialty}
                 onChange={handleEditProfileChange}
                 margin="normal"
-              />
-      
-              <TextField
+              />              <TextField
                 fullWidth
                 label="Bio"
                 name="bio"
@@ -770,9 +776,9 @@ function ChefProfile() {
                 margin="normal"
                 multiline
                 rows={4}
-              />
-      
-              <TextField
+                placeholder="Share your culinary journey, specialties, and inspiration..."
+                helperText="Your bio will be featured prominently in the About section of your profile"
+              /><TextField
                 fullWidth
                 label="Experience (years)"
                 name="experience"
@@ -781,6 +787,7 @@ function ChefProfile() {
                 onChange={handleEditProfileChange}
                 margin="normal"
                 inputProps={{ min: 0 }}
+                helperText="Your years of culinary experience will be displayed in your profile header"
               />
             </Box>
           </DialogContent>
