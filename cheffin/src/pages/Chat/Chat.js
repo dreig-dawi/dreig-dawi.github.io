@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
-import { endpoint } from '../../Utils/Constants.ts';
+import { endpoint } from '../../Utils/Constants';
 import { 
   Container, Paper, Box, TextField, Button, 
   Typography, Avatar, IconButton, Divider,

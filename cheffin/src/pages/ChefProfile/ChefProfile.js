@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
-import { endpoint } from '../../Utils/Constants.ts';
+import { endpoint } from '../../Utils/Constants';
 import { 
   Container, Grid, Box, Typography, Avatar, 
   Button, Card, CardMedia, CardContent,
