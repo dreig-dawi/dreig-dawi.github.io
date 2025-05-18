@@ -1,21 +1,26 @@
 .chef-profile-container {
   padding-top: 20px;
   padding-bottom: 40px;
-  
+  background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
 }
 
 .profile-banner {
-  background-color: #f8f8f8;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 30px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,248,248,0.95) 100%);
+  border: 1px solid rgba(241, 106, 45, 0.1);
 }
 
 .profile-header {
   display: flex;
   align-items: center;
   gap: 30px;
+  position: relative;
+  z-index: 1;
 }
 
 .profile-info {
@@ -24,17 +29,21 @@
 
 .chef-bio {
   background-color: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(241, 106, 45, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .post-card {
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   height: 100%;
   min-height: 500px; /* Ensure enough space for larger images */
   display: flex;
   flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .post-card:hover {
