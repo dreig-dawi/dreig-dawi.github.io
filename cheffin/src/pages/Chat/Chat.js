@@ -296,10 +296,17 @@ function Chat() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-    // When a specific chef is selected from the URL
+  // When a specific chef is selected from the URL
   useEffect(() => {
     if (username && currentUser) {
       console.log('URL parameter detected, username:', username);
+      
+      // Prevent users from chatting with themselves
+      if (username === currentUser.username) {
+        console.log('Cannot chat with yourself, redirecting to main chat page');
+        navigate('/chat');
+        return;
+      }
       
       // Find the conversation if it exists
       const conversation = conversations.find(conv => conv.username === username);
@@ -330,15 +337,20 @@ function Chat() {
         }
       }
     }
-  }, [username, currentUser, conversations, isMobileView, fetchMessages, fetchRecipientProfile, recipient, activeConversation]);
+  }, [username, currentUser, conversations, isMobileView, fetchMessages, fetchRecipientProfile, recipient, activeConversation, navigate]);
   
   // Auto-scroll to the bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
   const handleSendMessage = async () => {
     if (!message.trim() || !activeConversation) return;
+    
+    // Prevent sending messages to yourself
+    if (currentUser && activeConversation.username === currentUser.username) {
+      setError("You cannot send messages to yourself");
+      return;
+    }
     
     try {
       const token = localStorage.getItem('authToken');
@@ -496,10 +508,11 @@ function Chat() {
               <Typography variant="h6" sx={{ p: 2, borderBottom: '1px solid #eee' }}>
                 Conversations
               </Typography>
-              
-              {conversations.length > 0 ? (
+                {conversations.length > 0 ? (
                 <List>
-                  {conversations.map((conv) => (
+                  {conversations
+                    .filter(conv => currentUser && conv.username !== currentUser.username) // Filter out self conversations
+                    .map((conv) => (
                     <ListItem 
                       key={conv.participantId}
                       button
@@ -532,8 +545,7 @@ function Chat() {
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                     Start chatting with a chef to see conversations here
-                  </Typography>
-                  {username && (
+                  </Typography>                  {username && currentUser && username !== currentUser.username && (
                     <Button 
                       variant="contained"
                       color="primary"

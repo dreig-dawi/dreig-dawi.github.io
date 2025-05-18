@@ -24,9 +24,8 @@ function ChefsList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalItems, setTotalItems] = useState(0);
-  const [pageSize] = useState(12);
-  const { isAuthenticated } = useAuth();
+  const [totalItems, setTotalItems] = useState(0);  const [pageSize] = useState(12);
+  const { isAuthenticated, currentUser } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -96,6 +95,11 @@ function ChefsList() {
   
   const handleStartChat = (username) => {
     if (isAuthenticated()) {
+      // Prevent chatting with yourself
+      if (currentUser && username === currentUser.username) {
+        navigate('/chat');
+        return;
+      }
       navigate(`/chat/${username}`);
     } else {
       navigate('/login');

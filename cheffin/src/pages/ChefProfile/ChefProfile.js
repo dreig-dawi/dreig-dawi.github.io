@@ -292,8 +292,13 @@ function ChefProfile() {
       }
     }
   };
-  
-  const handleStartChat = () => {
+    const handleStartChat = () => {
+    // Prevent chatting with yourself
+    if (currentUser && username === currentUser.username) {
+      // Navigate to general chat page instead
+      navigate('/chat');
+      return;
+    }
     navigate(`/chat/${username}`);
   };
   
@@ -405,8 +410,7 @@ function ChefProfile() {
                     }}
                   >
                     Edit Profile
-                  </Button>
-                ) : (
+                  </Button>                ) : currentUser && username !== currentUser.username ? (
                   <Button
                     variant="contained"
                     startIcon={<MessageIcon />}
@@ -420,7 +424,7 @@ function ChefProfile() {
                   >
                     Chat with Chef
                   </Button>
-                )}
+                ) : null}
               </Box>
             </Box>
           </Box>

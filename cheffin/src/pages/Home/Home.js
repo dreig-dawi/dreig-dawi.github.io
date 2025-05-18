@@ -21,9 +21,8 @@ import './Home.css';
 function Home() {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
-  const [chefs, setChefs] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const { isAuthenticated } = useAuth();
+  const [chefs, setChefs] = useState([]);  const [searchTerm, setSearchTerm] = useState('');
+  const { isAuthenticated, currentUser } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -69,6 +68,11 @@ function Home() {
   
   const handleStartChat = (username) => {
     if (isAuthenticated()) {
+      // Prevent chatting with yourself
+      if (currentUser && username === currentUser.username) {
+        navigate('/chat');
+        return;
+      }
       navigate(`/chat/${username}`);
     } else {
       navigate('/login');
