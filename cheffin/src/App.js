@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Button, Container, Grid, Typography, Box, 
@@ -8,10 +8,19 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import DiningIcon from '@mui/icons-material/Dining';
 import MessageIcon from '@mui/icons-material/Message';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import { useAuth } from './context/AuthContext';
 import './App.css';
 
 function App() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  
+  // Redirect logged-in users to /home
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/home');
+    }
+  }, [isAuthenticated, navigate]);
 
   const features = [
     {
