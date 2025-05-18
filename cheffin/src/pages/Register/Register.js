@@ -26,12 +26,11 @@ function Register() {
     password: '',
     confirmPassword: ''
   });
-  
-  // Additional chef form data
+    // Additional chef form data
   const [chefFormData, setChefFormData] = useState({
     specialty: '',
     bio: '',
-    experience: ''
+    experience: ''  // Will store as string but convert to number during validation
   });
   
   const handleTabChange = (event, newValue) => {
@@ -86,11 +85,15 @@ function Register() {
       setError("Password must be at least 8 characters");
       return false;
     }
-    
-    // If chef, validate chef fields
+      // If chef, validate chef fields
     if (isChef) {
-      if (!chefFormData.specialty || !chefFormData.bio) {
+      if (!chefFormData.specialty || !chefFormData.bio || !chefFormData.experience) {
         setError("Please fill all required chef fields");
+        return false;
+      }
+      // Ensure experience is a valid number
+      if (isNaN(chefFormData.experience) || Number(chefFormData.experience) < 0) {
+        setError("Experience must be a valid number of years");
         return false;
       }
     }
@@ -280,9 +283,9 @@ function Register() {
                       onChange={handleChefChange}
                     />
                   </Grid>
-                  
-                  <Grid item xs={12}>
+                    <Grid item xs={12}>
                     <TextField
+                      required
                       fullWidth
                       id="experience"
                       label="Experience (years)"
