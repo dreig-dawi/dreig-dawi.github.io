@@ -8,6 +8,7 @@ import Home from './pages/Home/Home.js';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
 import ChefProfile from './pages/ChefProfile/ChefProfile';
+import ChefsList from './pages/ChefsList/ChefsList';
 import Chat from './pages/Chat/Chat';
 import NotFound from './pages/NotFound/NotFound';
 import { AuthProvider } from './context/AuthContext';
@@ -30,6 +31,7 @@ export default function Router() {
                     <Route path="/login" element={<WithLayout component={Login} />} />
                     <Route path="/register" element={<WithLayout component={Register} />} />
                     <Route path="/chef/:username" element={<WithLayout component={ChefProfile} />} />
+                    <Route path="/chefs" element={<WithLayout component={ChefsList} />} />
                     <Route path="/chat" element={<WithLayout component={Chat} />} />
                     <Route path="/chat/:username" element={<WithLayout component={Chat} />} />
                     

@@ -96,7 +96,7 @@ function App() {
           <Typography variant="h3" component="h2" align="center" gutterBottom className="section-title">
             Why Choose Cheffin
           </Typography>
-          <Grid container spacing={4} sx={{ mt: 2 }}>
+          <Grid container spacing={4} sx={{ mt: 2 , justifyContent: 'center'}}>
             {features.map((feature, index) => (
               <Grid item xs={12} md={4} key={index}>
                 <Card className="feature-card">
