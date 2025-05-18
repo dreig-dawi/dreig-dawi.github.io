@@ -20,6 +20,7 @@ import ImageGalleria from '../../components/ImageGalleria/ImageGalleria';
 import './ChefProfile.css';
 import './experience-badge.css';
 import './chef-bio-pattern.css';
+import './profile-picture-upload.css';
 
 function ChefProfile() {
   const { username } = useParams();
@@ -35,13 +36,15 @@ function ChefProfile() {
     description: '',
     images: []
   });
-  const [imagePreview, setImagePreview] = useState([]);
-  const [editProfileData, setEditProfileData] = useState({
+  const [imagePreview, setImagePreview] = useState([]);  const [editProfileData, setEditProfileData] = useState({
     bio: '',
     specialty: '',
-    experience: ''
+    experience: '',
+    profilePicture: ''
   });
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
   const [isCurrentChef, setIsCurrentChef] = useState(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   
   useEffect(() => {
     // Determine if the profile being viewed belongs to the current user
@@ -54,14 +57,19 @@ function ChefProfile() {
       try {
         const response = await axios.get(`${endpoint}/users/chef/${username}`);
         setChefData(response.data);
-        
-        // Set edit form data for the current chef
+          // Set edit form data for the current chef
         if (isCurrentChef) {
           setEditProfileData({
             bio: response.data.bio || '',
             specialty: response.data.specialty || '',
-            experience: response.data.experience || ''
+            experience: response.data.experience || '',
+            profilePicture: response.data.profilePicture || ''
           });
+          
+          // Initialize profile image preview if exists
+          if (response.data.profilePicture) {
+            setProfileImagePreview(response.data.profilePicture);
+          }
         }
         
         // Fetch chef's posts
@@ -95,9 +103,19 @@ function ChefProfile() {
   const handleOpenEditDialog = () => {
     setOpenEditDialog(true);
   };
-  
-  const handleCloseEditDialog = () => {
+    const handleCloseEditDialog = () => {
     setOpenEditDialog(false);
+    // Reset the profile image preview if the user cancels without saving
+    setProfileImagePreview(null);
+    // Reset form to current values
+    if (chefData) {
+      setEditProfileData({
+        bio: chefData.bio || '',
+        specialty: chefData.specialty || '',
+        experience: chefData.experience || '',
+        profilePicture: chefData.profilePicture || ''
+      });
+    }
   };
   
   const handleUploadChange = (e) => {
@@ -107,13 +125,32 @@ function ChefProfile() {
       [name]: value
     }));
   };
-  
-  const handleEditProfileChange = (e) => {
+    const handleEditProfileChange = (e) => {
     const { name, value } = e.target;
     setEditProfileData(prevState => ({
       ...prevState,
       [name]: value
     }));
+  };
+  
+  const handleProfileImageUpload = (e) => {
+    const file = e.target.files[0];
+    
+    if (file) {
+      // Convert image to base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result.split(',')[1];
+        // Update edit profile data with the new image
+        setEditProfileData(prevState => ({
+          ...prevState,
+          profilePicture: base64String
+        }));
+        // Set preview
+        setProfileImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
   
   const handleImageUpload = (e) => {
@@ -205,15 +242,17 @@ function ChefProfile() {
       }
     }
   };
-  
-  const handleUpdateProfile = async (e) => {
+    const handleUpdateProfile = async (e) => {
     e.preventDefault();
+    
+    setIsUpdatingProfile(true); // Start loading
     
     try {
       await updateProfile({
         bio: editProfileData.bio,
         specialty: editProfileData.specialty,
-        experience: editProfileData.experience
+        experience: editProfileData.experience,
+        profilePicture: editProfileData.profilePicture
       });
       
       // Update local chef data
@@ -221,13 +260,16 @@ function ChefProfile() {
         ...prevData,
         bio: editProfileData.bio,
         specialty: editProfileData.specialty,
-        experience: editProfileData.experience
+        experience: editProfileData.experience,
+        profilePicture: editProfileData.profilePicture
       }));
       
       handleCloseEditDialog();
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile. Please try again.');
+    } finally {
+      setIsUpdatingProfile(false); // End loading
     }
   };
   
@@ -750,7 +792,6 @@ function ChefProfile() {
             </Button>
           </DialogActions>
         </Dialog>
-      
         {/* Edit Profile Dialog */}
         <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth>
           <DialogTitle sx={{
@@ -759,7 +800,39 @@ function ChefProfile() {
             boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
           }}>Edit Profile</DialogTitle>
           <DialogContent>
-            <Box component="form" sx={{ mt: 2 }}>
+            <Box component="form" sx={{ mt: 2 }}>              {/* Profile Picture Upload */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3, mt: 1 }}>
+                <Box className="profile-picture-upload">
+                  <Avatar
+                    src={profileImagePreview || chefData.profilePicture || '/icons/orange-chef.png'}
+                    sx={{
+                      width: 100,
+                      height: 100,
+                      mb: 2,
+                      border: '3px solid #F16A2D',
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                      backgroundColor: 'white',
+                    }}
+                  />
+                  <Box 
+                    component="label" 
+                    className="profile-picture-overlay"
+                    htmlFor="profile-picture-upload"
+                  >
+                    <EditIcon className="profile-picture-icon" />
+                  </Box>
+                  <input
+                    id="profile-picture-upload"
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={handleProfileImageUpload}
+                  />
+                </Box>
+                <Typography variant="caption" sx={{ color: '#666', mt: 1 }}>
+                  Click on the image to upload a new profile picture
+                </Typography>
+              </Box>
               <TextField
                 fullWidth
                 label="Culinary Specialty"
@@ -790,17 +863,29 @@ function ChefProfile() {
                 helperText="Your years of culinary experience will be displayed in your profile header"
               />
             </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseEditDialog} sx={{ color: '#666' }}>Cancel</Button>          <Button
+          </DialogContent>          <DialogActions>
+            <Button 
+              onClick={handleCloseEditDialog} 
+              disabled={isUpdatingProfile}
+              sx={{ color: '#666' }}
+            >
+              Cancel
+            </Button>
+            <Button
               onClick={handleUpdateProfile}
+              disabled={isUpdatingProfile}
               sx={{
                 background: 'linear-gradient(135deg, #f48b4a 0%, #F16A2D 100%) !important',
                 color: 'white',
                 '&:hover': { opacity: 0.9 }
               }}
             >
-              Save Changes
+              {isUpdatingProfile ? (
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <CircularProgress size={20} sx={{ color: 'white', mr: 1 }} /> 
+                  Saving...
+                </Box>
+              ) : 'Save Changes'}
             </Button>
           </DialogActions>
         </Dialog>
