@@ -204,7 +204,7 @@ function ChefsList() {
         ) : (
           <>
             {/* Chefs Grid */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid container spacing={3} sx={{ mb: 4, display: 'flex', justifyContent: 'center'}}>
               {displayChefs.length > 0 ? (
                 displayChefs.map((chef, index) => (
                   <Grid item xs={12} sm={6} md={4} lg={3} key={chef.id}>
