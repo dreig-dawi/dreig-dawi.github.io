@@ -27,7 +27,7 @@
 }
 
 .Mui-selected {
-  color: #F16A2D !important;
+  color: #F16A2D;
 }
 
 @media (max-width: 600px) {
