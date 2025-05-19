@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.js';
 import axios from 'axios';
@@ -7,7 +7,7 @@ import {
   Container, Grid, Card, CardMedia, CardContent, 
   Typography, Button, Box, CircularProgress,
   TextField, InputAdornment, Avatar, Chip,
-  Paper, Divider, IconButton, Fade, Zoom
+  Paper, Divider, IconButton, Fade, Zoom, Pagination
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import MessageIcon from '@mui/icons-material/Message';
@@ -20,47 +20,108 @@ import './Home.css';
 
 function Home() {
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [posts, setPosts] = useState([]);
-  const [chefs, setChefs] = useState([]);  const [searchTerm, setSearchTerm] = useState('');
+  const [randomPosts, setRandomPosts] = useState([]);
+  const [chefs, setChefs] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);  const [pageSize] = useState(9);
   const { isAuthenticated, currentUser } = useAuth();
   const navigate = useNavigate();
   
-  useEffect(() => {
-    // Fetch posts and chefs
-    fetchData();
-    
-    // Scroll to top when component mounts
-    window.scrollTo(0, 0);
-  }, []);
-  
-  const fetchData = async () => {
+  // Define fetchRandomData first using useCallback so it can be referenced in useEffect
+  const fetchRandomData = useCallback(async () => {
     try {
-      setLoading(true);
-      
-      // Fetch posts
+      setInitialLoading(true);
+      // Fetch all posts and select 9 random ones
       const postResponse = await axios.get(`${endpoint}/post`);
-      setPosts(postResponse.data);
+      // Shuffle posts array and take first 9 items
+      const shuffledPosts = postResponse.data
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 9);
+      setRandomPosts(shuffledPosts);
+      
+      // Calculate total pages for all posts (for pagination)
+      const calculatedTotalPages = Math.ceil(postResponse.data.length / pageSize);
+      setTotalPages(calculatedTotalPages);
       
       // Fetch featured chefs
       const chefsResponse = await axios.get(`${endpoint}/users/chefs/featured`);
       setChefs(chefsResponse.data);
       
+      setInitialLoading(false);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching random data:', error);
+      setInitialLoading(false);
       setLoading(false);
     }
-  };
+  }, [pageSize]);
+  
+  // Define fetchAllPosts using useCallback so it can be referenced in useEffect
+  const fetchAllPosts = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch all posts for search and implement client-side pagination
+      const postResponse = await axios.get(`${endpoint}/post`);
+      const allPosts = postResponse.data;
+      
+      const filteredPosts = searchTerm 
+        ? allPosts.filter(post => 
+            post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            post.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            post.username?.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+        : allPosts;
+      
+      // Calculate total pages based on filtered results
+      const calculatedTotalPages = Math.ceil(filteredPosts.length / pageSize);
+      setTotalPages(calculatedTotalPages);
+      
+      // Get current page subset
+      const startIndex = page * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
+      
+      setPosts(paginatedPosts);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching all posts:', error);
+      setLoading(false);
+    }
+  }, [searchTerm, page, pageSize]);
+  useEffect(() => {
+    // Fetch random posts and chefs on initial load
+    fetchRandomData();
+    
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, [fetchRandomData]);
+
+  // Search posts when search term changes or page changes
+  useEffect(() => {
+    if (!initialLoading && (searchTerm || page > 0)) {
+      const delayDebounceFn = setTimeout(() => {
+        fetchAllPosts();
+      }, 500);
+      
+      return () => clearTimeout(delayDebounceFn);
+    }
+  }, [searchTerm, initialLoading, page, fetchAllPosts]);
   
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setPage(0); // Reset to first page when search term changes
   };
   
-  const filteredPosts = posts.filter(post => 
-    post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.username?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage - 1); // MaterialUI Pagination is 1-indexed, but our logic is 0-indexed
+    window.scrollTo(0, 0); // Scroll to top when changing page
+  };
+  
+  // Display random posts if no search term and page is 0, otherwise use paginated posts
+  const displayPosts = (searchTerm || page > 0) ? posts : randomPosts;
   
   const handleChefProfile = (username) => {
     navigate(`/chef/${username}`);
@@ -78,8 +139,7 @@ function Home() {
       navigate('/login');
     }
   };
-  
-  if (loading) {
+    if (initialLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <CircularProgress sx={{ color: '#F16A2D' }} />
@@ -365,8 +425,7 @@ function Home() {
             )}
           </Grid>
         </Box>
-        
-        {/* Recent Posts Feed */}
+          {/* Recent Posts Feed */}
         <Box sx={{ mb: 8 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
             <Box>
@@ -389,171 +448,220 @@ function Home() {
                     bgcolor: '#F16A2D' 
                   }} 
                 />
-              </Typography>
-              <Typography variant="body1" sx={{ mt: 2, color: 'text.secondary' }}>
-                Discover the most recent delicious masterpieces from our chefs
+              </Typography>              <Typography variant="body1" sx={{ mt: 2, color: 'text.secondary' }}>
+                {searchTerm ? 'Search results' : 'Discover 9 random culinary masterpieces from our chefs'}
               </Typography>
             </Box>
-          </Box>
-            <Grid container spacing={2} sx={{ width: '100%', maxWidth: '1600px', mx: 'auto', justifyContent: 'center' }}>
-            {filteredPosts.length > 0 ? (
-              filteredPosts.map((post, index) => (
-                <Grid item xs={12} md={6} lg={6} key={post.id}>
-                  <Fade in={true} timeout={1000} style={{ transitionDelay: `${150 * index}ms` }}>
-                    <Card 
-                      className="post-card" 
-                      sx={{ 
-                        borderRadius: '12px',
-                        overflow: 'hidden',
-                        width: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        boxShadow: '0 8px 20px rgba(0,0,0,0.08)'
-                      }}
-                    >                      
-                    <CardMedia
-                        component="div"
-                        sx={{ 
-                          position: 'relative',
-                          height: '100%',
-                          width: '100%',
-                          maxWidth: '800px',
-                          margin: '0 auto',
-                          overflow: 'hidden',
-                          paddingLeft: '180px',
-                          paddingRight: '180px',
-                          paddingTop: '200px',
-                          paddingBottom: '200px',
-                        }}
-                      >{post.contentImages && post.contentImages.length > 0 ? (                          post.contentImages.length > 1 ? (
-                            <ImageGalleria 
-                              images={post.contentImages} 
-                              title={post.title} 
-                            />
-                          ) : (                            
-                          <Image
-                              src={`data:image/png;base64,${post.contentImages[0]}`}
-                              alt={post.title}
-                              preview
-                              className="card-image"                              pt={{
-                                image: { 
-                                  className: 'w-100 h-100', 
-                                  style: { 
-                                    objectFit: 'contain', 
-                                    backgroundColor: '#f7f7f7',
-                                    width: '100%',
-                                    height: 'auto',
-                                    maxHeight: '100%',
-                                    maxWidth: '100%',
-                                    margin: '0 auto'
-                                  } 
-                                },
-                                indicator: { 
-                                  className: 'custom-indicator',
-                                  icon: <img src="/icons/mini-chef-hat.svg" alt="Chef icon" className="chef-icon" />
-                                }
+          </Box>          {/* Loading state or content */}
+          {loading && searchTerm ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+              <CircularProgress sx={{ color: '#F16A2D' }} />
+            </Box>
+          ) : (
+            <>
+              {/* Posts grid */}
+              <Grid container spacing={2} sx={{ width: '100%', maxWidth: '1600px', mx: 'auto', justifyContent: 'center' }}>
+                {displayPosts?.length > 0 ? (
+                  displayPosts.map((post, index) => (
+                    <Grid item xs={12} md={6} lg={6} key={post.id}>
+                      <Fade in={true} timeout={1000} style={{ transitionDelay: `${150 * index}ms` }}>
+                        <Card 
+                          className="post-card" 
+                          sx={{ 
+                            borderRadius: '12px',
+                            overflow: 'hidden',
+                            width: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            boxShadow: '0 8px 20px rgba(0,0,0,0.08)'
+                          }}
+                        >                      
+                          <CardMedia
+                            component="div"
+                            sx={{ 
+                              position: 'relative',
+                              height: '100%',
+                              width: '100%',
+                              maxWidth: '800px',
+                              margin: '0 auto',
+                              overflow: 'hidden',
+                              paddingLeft: '180px',
+                              paddingRight: '180px',
+                              paddingTop: '200px',
+                              paddingBottom: '200px',
+                            }}
+                          >
+                            {post.contentImages && post.contentImages.length > 0 ? (
+                              post.contentImages.length > 1 ? (
+                                <ImageGalleria 
+                                  images={post.contentImages} 
+                                  title={post.title} 
+                                />
+                              ) : (                            
+                                <Image
+                                  src={`data:image/png;base64,${post.contentImages[0]}`}
+                                  alt={post.title}
+                                  preview
+                                  className="card-image"
+                                  pt={{
+                                    image: { 
+                                      className: 'w-100 h-100', 
+                                      style: { 
+                                        objectFit: 'contain', 
+                                        backgroundColor: '#f7f7f7',
+                                        width: '100%',
+                                        height: 'auto',
+                                        maxHeight: '100%',
+                                        maxWidth: '100%',
+                                        margin: '0 auto'
+                                      } 
+                                    },
+                                    indicator: { 
+                                      className: 'custom-indicator',
+                                      icon: <img src="/icons/mini-chef-hat.svg" alt="Chef icon" className="chef-icon" />
+                                    }
+                                  }}
+                                />
+                              )
+                            ) : (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  width: '100%',
+                                  height: '100%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  bgcolor: '#f7f7f7'
+                                }}
+                              >
+                                <img 
+                                  src="/icons/chef-hat.svg" 
+                                  alt="Chef hat" 
+                                  style={{ width: '40%', opacity: 0.4 }}
+                                />
+                              </Box>
+                            )}
+                            <Chip
+                              label={post.username}
+                              size="medium"
+                              avatar={<Avatar sx={{ bgcolor: '#F16A2D' }}>{post.username[0].toUpperCase()}</Avatar>}
+                              onClick={() => handleChefProfile(post.username)}
+                              sx={{
+                                position: 'absolute',
+                                top: 12,
+                                left: 12,
+                                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                                fontWeight: 500,
+                                cursor: 'pointer',
+                                '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' }
                               }}
                             />
-                          )
-                        ) : (
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              width: '100%',
-                              height: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              bgcolor: '#f7f7f7'
-                            }}
-                          >
-                            <img 
-                              src="/icons/chef-hat.svg" 
-                              alt="Chef hat" 
-                              style={{ width: '40%', opacity: 0.4 }}
-                            />
-                          </Box>
-                        )}
-                        <Chip
-                          label={post.username}
-                          size="medium"
-                          avatar={<Avatar sx={{ bgcolor: '#F16A2D' }}>{post.username[0].toUpperCase()}</Avatar>}
-                          onClick={() => handleChefProfile(post.username)}
-                          sx={{
-                            position: 'absolute',
-                            top: 12,
-                            left: 12,
-                            bgcolor: 'rgba(255, 255, 255, 0.9)',
-                            fontWeight: 500,
-                            cursor: 'pointer',
-                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' }
-                          }}
-                        />
-                      </CardMedia>
-                      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                        <Typography 
-                          variant="h6" 
-                          gutterBottom 
-                          component="div"
-                          sx={{ fontWeight: 600 }}
-                        >
-                          {post.title}
-                        </Typography>
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary" 
-                          paragraph
-                          sx={{ mb: 'auto', flexGrow: 1 }}
-                        >
-                          {post.description && post.description.length > 120
-                            ? `${post.description.substring(0, 120)}...`
-                            : post.description}
-                        </Typography>
-                        <Divider sx={{ my: 2 }} />
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Button 
-                            size="small"
-                            variant="text"
-                            onClick={() => handleChefProfile(post.username)}
-                            sx={{ 
-                              color: '#F16A2D',
-                              fontWeight: 500,
-                              '&:hover': { bgcolor: 'rgba(241, 106, 45, 0.08)' }
-                            }}
-                          >
-                            View Details
-                          </Button>
-                          <Typography 
-                            variant="caption" 
-                            color="text.secondary"
-                            sx={{ display: 'flex', alignItems: 'center' }}
-                          >
-                            {new Date(post.createdAt).toLocaleDateString()}
-                          </Typography>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Fade>
-                </Grid>
-              ))
-            ) : (
-              <Box sx={{ width: '100%', textAlign: 'center', py: 8 }}>
-                <img 
-                  src="/icons/chef-hat.svg" 
-                  alt="Chef hat" 
-                  style={{ width: 80, opacity: 0.5, marginBottom: 20 }} 
-                />
-                <Typography variant="h6" color="text.secondary">
-                  {searchTerm ? 'No posts match your search' : 'No posts available yet'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  {searchTerm ? 'Try different keywords' : 'Check back soon for delicious culinary creations'}
-                </Typography>
-              </Box>
-            )}
-          </Grid>
+                          </CardMedia>
+                          <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                            <Typography 
+                              variant="h6" 
+                              gutterBottom 
+                              component="div"
+                              sx={{ fontWeight: 600 }}
+                            >
+                              {post.title}
+                            </Typography>
+                            <Typography 
+                              variant="body2" 
+                              color="text.secondary" 
+                              paragraph
+                              sx={{ mb: 'auto', flexGrow: 1 }}
+                            >
+                              {post.description && post.description.length > 120
+                                ? `${post.description.substring(0, 120)}...`
+                                : post.description}
+                            </Typography>
+                            <Divider sx={{ my: 2 }} />
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Button 
+                                size="small"
+                                variant="text"
+                                onClick={() => handleChefProfile(post.username)}
+                                sx={{ 
+                                  color: '#F16A2D',
+                                  fontWeight: 500,
+                                  '&:hover': { bgcolor: 'rgba(241, 106, 45, 0.08)' }
+                                }}
+                              >
+                                View Details
+                              </Button>
+                              <Typography 
+                                variant="caption" 
+                                color="text.secondary"
+                                sx={{ display: 'flex', alignItems: 'center' }}
+                              >
+                                {new Date(post.createdAt).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      </Fade>
+                    </Grid>
+                  ))
+                ) : (
+                  <Box sx={{ width: '100%', textAlign: 'center', py: 8 }}>
+                    <img 
+                      src="/icons/chef-hat.svg" 
+                      alt="Chef hat" 
+                      style={{ width: 80, opacity: 0.5, marginBottom: 20 }} 
+                    />
+                    <Typography variant="h6" color="text.secondary">
+                      {searchTerm ? 'No posts match your search' : 'No posts available yet'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      {searchTerm ? 'Try different keywords' : 'Check back soon for delicious culinary creations'}
+                    </Typography>
+                    {searchTerm && (
+                      <Button
+                        variant="outlined"
+                        onClick={() => setSearchTerm('')}
+                        sx={{ mt: 2, borderColor: '#F16A2D', color: '#F16A2D' }}
+                      >
+                        Show Random Posts
+                      </Button>
+                    )}
+                  </Box>
+                )}
+              </Grid>
+                {/* Pagination - Always visible when there are pages */}
+              {totalPages > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                  <Pagination 
+                    count={totalPages} 
+                    page={page + 1} 
+                    onChange={handlePageChange}
+                    color="primary"
+                    size="large"
+                    showFirstButton 
+                    showLastButton
+                    sx={{
+                      '& .MuiPaginationItem-root': {
+                        color: '#666',
+                        '&.Mui-selected': {
+                          backgroundColor: '#F16A2D',
+                          color: 'white',
+                          '&:hover': {
+                            backgroundColor: '#d45c26',
+                          }
+                        },
+                        '&:hover': {
+                          backgroundColor: 'rgba(241, 106, 45, 0.1)',
+                        },
+                      },
+                    }}
+                  />
+                </Box>
+              )}
+            </>
+          )}
         </Box>
         
         {/* Call to Action Section */}
