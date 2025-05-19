@@ -28,22 +28,22 @@ function Home() {
   const [totalPages, setTotalPages] = useState(0);  const [pageSize] = useState(9);
   const { isAuthenticated, currentUser } = useAuth();
   const navigate = useNavigate();
-  
-  // Define fetchRandomData first using useCallback so it can be referenced in useEffect
+    // Define fetchRandomData first using useCallback so it can be referenced in useEffect
   const fetchRandomData = useCallback(async () => {
     try {
       setInitialLoading(true);
-      // Fetch all posts and select 9 random ones
+      // Fetch all posts
       const postResponse = await axios.get(`${endpoint}/post`);
-      // Shuffle posts array and take first 9 items
-      const shuffledPosts = postResponse.data
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 9);
-      setRandomPosts(shuffledPosts);
       
       // Calculate total pages for all posts (for pagination)
       const calculatedTotalPages = Math.ceil(postResponse.data.length / pageSize);
       setTotalPages(calculatedTotalPages);
+      
+      // Shuffle posts array and take first 9 items for random display
+      const shuffledPosts = postResponse.data
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 9);
+      setRandomPosts(shuffledPosts);
       
       // Fetch featured chefs
       const chefsResponse = await axios.get(`${endpoint}/users/chefs/featured`);
@@ -97,14 +97,16 @@ function Home() {
     
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, [fetchRandomData]);
-
-  // Search posts when search term changes or page changes
+  }, [fetchRandomData]);  // Fetch posts when search term changes or page changes
   useEffect(() => {
-    if (!initialLoading && (searchTerm || page > 0)) {
+    if (!initialLoading) {
+      // Only apply delay for search term changes, not for pagination
+      const delay = searchTerm ? 500 : 0;
+      
       const delayDebounceFn = setTimeout(() => {
+        // Always fetch all posts when paginating or searching
         fetchAllPosts();
-      }, 500);
+      }, delay);
       
       return () => clearTimeout(delayDebounceFn);
     }
@@ -114,14 +116,15 @@ function Home() {
     setSearchTerm(e.target.value);
     setPage(0); // Reset to first page when search term changes
   };
-  
   const handlePageChange = (event, newPage) => {
+    if (event) {
+      event.preventDefault(); // Prevent default page reload
+      event.stopPropagation(); // Prevent event bubbling
+    }
     setPage(newPage - 1); // MaterialUI Pagination is 1-indexed, but our logic is 0-indexed
-    window.scrollTo(0, 0); // Scroll to top when changing page
   };
-  
-  // Display random posts if no search term and page is 0, otherwise use paginated posts
-  const displayPosts = (searchTerm || page > 0) ? posts : randomPosts;
+    // Display posts based on whether we're searching or not
+  const displayPosts = searchTerm ? posts : (page > 0 ? posts : randomPosts);
   
   const handleChefProfile = (username) => {
     navigate(`/chef/${username}`);
@@ -630,14 +633,14 @@ function Home() {
                     )}
                   </Box>
                 )}
-              </Grid>
-                {/* Pagination - Always visible when there are pages */}
-              {totalPages > 0 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+              </Grid>                {/* Pagination - Always visible when there are pages */}
+              {totalPages > 0 && (                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }} 
+                    onClick={(e) => e.preventDefault()}>
                   <Pagination 
                     count={totalPages} 
                     page={page + 1} 
                     onChange={handlePageChange}
+                    onClick={(e) => e.preventDefault()}
                     color="primary"
                     size="large"
                     showFirstButton 
@@ -645,6 +648,7 @@ function Home() {
                     sx={{
                       '& .MuiPaginationItem-root': {
                         color: '#666',
+                        cursor: 'pointer',
                         '&.Mui-selected': {
                           backgroundColor: '#F16A2D',
                           color: 'white',
@@ -656,6 +660,9 @@ function Home() {
                           backgroundColor: 'rgba(241, 106, 45, 0.1)',
                         },
                       },
+                      '& button': {
+                        pointerEvents: 'auto', // Ensure buttons respond to events
+                      }
                     }}
                   />
                 </Box>

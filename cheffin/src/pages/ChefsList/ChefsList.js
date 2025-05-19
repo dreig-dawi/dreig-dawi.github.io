@@ -84,8 +84,8 @@ function ChefsList() {
     setSearchTerm(e.target.value);
     setPage(0); // Reset to first page when search term changes
   };
-  
-  const handlePageChange = (event, newPage) => {
+    const handlePageChange = (event, newPage) => {
+    event.preventDefault(); // Prevent default page reload
     setPage(newPage - 1); // MaterialUI Pagination is 1-indexed, but our API is 0-indexed
   };
   
