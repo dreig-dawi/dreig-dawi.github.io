@@ -200,8 +200,7 @@ function Register() {
               
               
               <Container sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 2, gap: 2 }}>
-                <Grid item xs={12}>
-                  <TextField
+                <Grid item xs={12}>                  <TextField
                     required
                     fullWidth
                     id="username"
@@ -210,10 +209,11 @@ function Register() {
                     autoComplete="username"
                     value={userFormData.username}
                     onChange={handleUserChange}
+                    inputProps={{ maxLength: 30 }}
                   />
                 </Grid>
                 
-                <Grid item xs={12}>
+                <Grid item xs={12}>                  
                   <TextField
                     required
                     fullWidth
@@ -223,13 +223,13 @@ function Register() {
                     autoComplete="email"
                     value={userFormData.email}
                     onChange={handleUserChange}
+                    inputProps={{ maxLength: 100 }}
                   />
                 </Grid>
               </Container>
               
               <Container sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 2, gap: 2 }}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
+                <Grid item xs={12} sm={6}>                  <TextField
                     required
                     fullWidth
                     name="password"
@@ -239,11 +239,11 @@ function Register() {
                     autoComplete="new-password"
                     value={userFormData.password}
                     onChange={handleUserChange}
+                    inputProps={{ maxLength: 64 }}
                   />
                 </Grid>
                 
-                <Grid item xs={12} sm={6}>
-                  <TextField
+                <Grid item xs={12} sm={6}>                  <TextField
                     required
                     fullWidth
                     name="confirmPassword"
@@ -252,6 +252,7 @@ function Register() {
                     id="confirmPassword"
                     value={userFormData.confirmPassword}
                     onChange={handleUserChange}
+                    inputProps={{ maxLength: 64 }}
                   />
                 </Grid>
               </Container>
@@ -266,8 +267,7 @@ function Register() {
                 
                 <Grid container spacing={2} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <Container sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 2, gap: 2 }}> 
-                    <Grid item xs={12}>
-                      <TextField
+                    <Grid item xs={12}>                      <TextField
                         required
                         fullWidth
                         id="specialty"
@@ -276,10 +276,14 @@ function Register() {
                         placeholder="e.g., Italian Cuisine, Pastry, Vegan..."
                         value={chefFormData.specialty}
                         onChange={handleChefChange}
+                        inputProps={{ maxLength: 50 }}
+                        sx={{
+                          maxWidth: '200px',
+                        }}
                       />
                     </Grid>
                     
-                    <Grid item xs={12}>
+                    <Grid item xs={12}>                      
                       <TextField
                         required
                         fullWidth
@@ -287,9 +291,12 @@ function Register() {
                         label="Experience (years)"
                         name="experience"
                         type="number"
-                        inputProps={{ min: 0 }}
+                        inputProps={{ min: 0, max: 99 }}
                         value={chefFormData.experience}
                         onChange={handleChefChange}
+                        sx={{
+                          minWidth: '200px',
+                        }}
                       />
                     </Grid>
                   </Container>
@@ -306,6 +313,7 @@ function Register() {
                       placeholder="Tell us about yourself and your culinary journey..."
                       value={chefFormData.bio}
                       onChange={handleChefChange}
+                      inputProps={{ maxLength: 500 }}
                     />
                   </Grid>
                 </Grid>
