@@ -133,7 +133,7 @@ function App() {
           <Typography variant="h3" component="h2" align="center" gutterBottom className="section-title">
             What Our Users Say
           </Typography>
-          <Grid container spacing={4} sx={{ mt: 2 }}>
+          <Grid container spacing={4} sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
             {testimonials.map((testimonial, index) => (
               <Grid item xs={12} md={6} key={index}>
                 <Card className="testimonial-card">

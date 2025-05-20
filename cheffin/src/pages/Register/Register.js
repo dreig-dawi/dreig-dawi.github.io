@@ -162,9 +162,8 @@ function Register() {
           
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
             {/* User information - common for both tabs */}
-            <Grid container spacing={2}>
-              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                <Box sx={{ position: 'relative' }}>
+            <Grid container spacing={2} sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ position: 'relative' }}>
                   <Avatar 
                     src={profilePreview} 
                     sx={{ width: 100, height: 100 }}
@@ -192,7 +191,6 @@ function Register() {
                     </IconButton>
                   </label>
                 </Box>
-              </Grid>
               
               <Grid item xs={12}>
                 <TextField

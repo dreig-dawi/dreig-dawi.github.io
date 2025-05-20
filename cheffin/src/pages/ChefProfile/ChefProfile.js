@@ -152,24 +152,50 @@ function ChefProfile() {
       reader.readAsDataURL(file);
     }
   };
-  
-  const handleImageUpload = (e) => {
+    const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     
     if (files.length > 0) {
-      setUploadData(prevState => ({
-        ...prevState,
-        images: [...prevState.images, ...files]
-      }));
+      // Check if adding these files would exceed the 9-file limit
+      const totalFileCount = uploadData.images.length + files.length;
       
-      // Generate previews
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreview(prevPreviews => [...prevPreviews, reader.result]);
-        };
-        reader.readAsDataURL(file);
-      });
+      if (totalFileCount > 9) {
+        alert(`You can only upload a maximum of 9 images. You currently have ${uploadData.images.length} images selected.`);
+        // Only add files up to the limit
+        const remainingSlots = Math.max(0, 9 - uploadData.images.length);
+        const filesToAdd = files.slice(0, remainingSlots);
+        
+        if (filesToAdd.length > 0) {
+          setUploadData(prevState => ({
+            ...prevState,
+            images: [...prevState.images, ...filesToAdd]
+          }));
+          
+          // Generate previews only for files we're adding
+          filesToAdd.forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setImagePreview(prevPreviews => [...prevPreviews, reader.result]);
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+      } else {
+        // No limit problems, add all files
+        setUploadData(prevState => ({
+          ...prevState,
+          images: [...prevState.images, ...files]
+        }));
+        
+        // Generate previews
+        files.forEach(file => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setImagePreview(prevPreviews => [...prevPreviews, reader.result]);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
     }
   };
   
@@ -696,13 +722,46 @@ function ChefProfile() {
         </Box>
       
         {/* Upload Content Dialog */}
-        <Dialog open={openUploadDialog} onClose={handleCloseUploadDialog} maxWidth="sm" fullWidth>
+        <Dialog open={openUploadDialog} onClose={handleCloseUploadDialog} maxWidth="sm" fullWidth onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      const droppedFiles = Array.from(e.dataTransfer.files).filter(
+                        file => file.type.startsWith('image/')
+                      );
+                      
+                      if (droppedFiles.length > 0) {
+                        // Handle files the same way as file input
+                        setUploadData(prevState => ({
+                          ...prevState,
+                          images: [...prevState.images, ...droppedFiles]
+                        }));
+                        
+                        // Generate previews for dropped files
+                        droppedFiles.forEach(file => {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setImagePreview(prevPreviews => [...prevPreviews, reader.result]);
+                          };
+                          reader.readAsDataURL(file);
+                        });
+                      }
+                    }
+                  }}>
           <DialogTitle sx={{
             background: 'linear-gradient(135deg, #f48b4a 0%, #F16A2D 100%) !important',
             color: 'white',
             boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-          }}>Create New Post</DialogTitle>
-          <DialogContent>
+          }}>Create New Post</DialogTitle>          <DialogContent>
             <Box component="form" sx={{ mt: 2 }}>
               <TextField
                 fullWidth
@@ -726,18 +785,108 @@ function ChefProfile() {
                 required
               />
       
-              <Box sx={{ mt: 3, mb: 2 }}>              <Button
-                  variant="contained"
-                  component="label"
-                  startIcon={<ImageIcon />}
+              <Box 
+                sx={{ 
+                  mt: 3, 
+                  mb: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center'
+                }}
+              >                <Box
                   sx={{
-                    background: 'linear-gradient(135deg, #f48b4a 0%, #F16A2D 100%) !important',
-                    color: 'white',
-                    '&:hover': { opacity: 0.9 },
-                    boxShadow: '0 4px 12px rgba(241, 106, 45, 0.2)'
+                    border: '2px dashed #F16A2D',
+                    borderRadius: '8px',
+                    padding: '20px',
+                    width: '100%',
+                    minHeight: '120px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: uploadData.images.length >= 9 ? 'rgba(200, 200, 200, 0.2)' : 'rgba(241, 106, 45, 0.05)',
+                    cursor: uploadData.images.length >= 9 ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      backgroundColor: uploadData.images.length >= 9 ? 'rgba(200, 200, 200, 0.2)' : 'rgba(241, 106, 45, 0.1)',
+                    },
+                    mb: 2,
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Only show drag effect if we haven't reached the limit
+                    if (uploadData.images.length < 9) {
+                      e.currentTarget.style.backgroundColor = 'rgba(241, 106, 45, 0.2)';
+                    }
                   }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.currentTarget.style.backgroundColor = 'rgba(241, 106, 45, 0.05)';
+                  }}                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.currentTarget.style.backgroundColor = 'rgba(241, 106, 45, 0.05)';
+                    
+                    // If we've already hit the limit, don't process any more files
+                    if (uploadData.images.length >= 9) {
+                      alert('You have already selected the maximum of 9 images.');
+                      return;
+                    }
+                    
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      const droppedFiles = Array.from(e.dataTransfer.files).filter(
+                        file => file.type.startsWith('image/')
+                      );
+                      
+                      if (droppedFiles.length > 0) {
+                        // Check if adding these files would exceed the 9-file limit
+                        const totalFileCount = uploadData.images.length + droppedFiles.length;
+                        
+                        if (totalFileCount > 9) {
+                          alert(`You can only upload a maximum of 9 images. You currently have ${uploadData.images.length} images selected.`);
+                          // Only add files up to the limit
+                          const remainingSlots = Math.max(0, 9 - uploadData.images.length);
+                          const filesToAdd = droppedFiles.slice(0, remainingSlots);
+                          
+                          if (filesToAdd.length > 0) {
+                            setUploadData(prevState => ({
+                              ...prevState,
+                              images: [...prevState.images, ...filesToAdd]
+                            }));
+                            
+                            // Generate previews only for files we're adding
+                            filesToAdd.forEach(file => {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setImagePreview(prevPreviews => [...prevPreviews, reader.result]);
+                              };
+                              reader.readAsDataURL(file);
+                            });
+                          }
+                        } else {
+                          // No limit problems, add all files
+                          setUploadData(prevState => ({
+                            ...prevState,
+                            images: [...prevState.images, ...droppedFiles]
+                          }));
+                          
+                          // Generate previews for dropped files
+                          droppedFiles.forEach(file => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setImagePreview(prevPreviews => [...prevPreviews, reader.result]);
+                            };
+                            reader.readAsDataURL(file);
+                          });
+                        }
+                      }
+                    }
+                  }}
+                  component="label"
                 >
-                  Upload Images
                   <input
                     type="file"
                     accept="image/*"
@@ -745,7 +894,41 @@ function ChefProfile() {
                     hidden
                     onChange={handleImageUpload}
                   />
-                </Button>
+                  <ImageIcon sx={{ fontSize: 40, color: '#F16A2D', mb: 2 }} />
+                  <Typography variant="body1" align="center" sx={{ color: '#666' }}>
+                    Drag & drop images here or click to upload
+                  </Typography>
+                  <Typography variant="caption" align="center" sx={{ color: '#888', mt: 1 }}>
+                    Supported formats: JPEG, PNG, GIF
+                  </Typography>                </Box>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mb: 1 }}>
+                  <Typography variant="caption" sx={{ color: '#666' }}>
+                    {uploadData.images.length} of 9 images selected
+                  </Typography>
+                  
+                  <Button
+                    variant="contained"
+                    component="label"
+                    startIcon={<ImageIcon />}
+                    sx={{
+                      background: 'linear-gradient(135deg, #f48b4a 0%, #F16A2D 100%) !important',
+                      color: 'white',
+                      '&:hover': { opacity: 0.9 },
+                      boxShadow: '0 4px 12px rgba(241, 106, 45, 0.2)'
+                    }}
+                    disabled={uploadData.images.length >= 9}
+                  >
+                    Select Images
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      hidden
+                      onChange={handleImageUpload}
+                    />
+                  </Button>
+                </Box>
               </Box>
       
               {/* Image Preview */}
