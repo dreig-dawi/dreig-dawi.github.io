@@ -142,55 +142,62 @@ function Register() {
             p: 4
           }}
         >
-          <img 
-            src="/icons/orange-chef.png" 
-            alt="Chef Logo" 
-            className="register-logo" 
-            style={{ width: '100px', marginBottom: '20px' }}
-          />
-          
-          <Typography component="h1" variant="h5" gutterBottom>
-            Create a Cheffin Account
-          </Typography>
-          
-          <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
-            <Tab label="Regular User" />
-            <Tab label="Chef" />
-          </Tabs>
+          <Container sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+            <img
+              src="/icons/orange-chef.png"
+              alt="Chef Logo"
+              className="register-logo"
+              style={{ width: '100px', marginBottom: '20px' }}
+            />
+            
+            <div> 
+              <Typography component="h1" variant="h5" gutterBottom>
+                Create a Cheffin Account
+              </Typography>
+              
+              <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
+                <Tab label="Regular User" />
+                <Tab label="Chef" />
+              </Tabs>
+            </div>
+          </Container>
           
           {error && <Alert severity="error" sx={{ width: '100%', mb: 2 }}>{error}</Alert>}
           
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
             {/* User information - common for both tabs */}
             <Grid container spacing={2} sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Box sx={{ position: 'relative' }}>
-                  <Avatar 
-                    src={profilePreview} 
-                    sx={{ width: 100, height: 100 }}
-                  />
-                  <input
-                    accept="image/*"
-                    id="profile-picture-upload"
-                    type="file"
-                    hidden
-                    onChange={handleProfilePicture}
-                  />
-                  <label htmlFor="profile-picture-upload">
-                    <IconButton 
-                      component="span"
-                      sx={{ 
-                        position: 'absolute', 
-                        bottom: 0, 
-                        right: 0, 
-                        backgroundColor: '#F16A2D',
-                        color: 'white',
-                        '&:hover': { bgcolor: '#d45c26' }
-                      }}
-                    >
-                      <CloudUploadIcon />
-                    </IconButton>
-                  </label>
-                </Box>
+              <Box sx={{ position: 'relative', display: 'block', mb: 2 }}>
+                    <Avatar 
+                      src={profilePreview} 
+                      sx={{ width: 100, height: 100 }}
+                    />
+                    <input
+                      accept="image/*"
+                      id="profile-picture-upload"
+                      type="file"
+                      hidden
+                      onChange={handleProfilePicture}
+                    />
+                    <label htmlFor="profile-picture-upload">
+                      <IconButton 
+                        component="span"
+                        sx={{ 
+                          position: 'absolute', 
+                          bottom: 0, 
+                          right: 0, 
+                          backgroundColor: '#F16A2D',
+                          color: 'white',
+                          '&:hover': { bgcolor: '#d45c26' }
+                        }}
+                      >
+                        <CloudUploadIcon />
+                      </IconButton>
+                    </label>
+              </Box>
+            </Grid>
+            <Grid container spacing={2} sx={{ display: 'flex', justifyContent: 'center' }}>
+              
               
               <Grid item xs={12}>
                 <TextField
@@ -253,20 +260,36 @@ function Register() {
                   Chef Profile
                 </Typography>
                 
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <TextField
-                      required
-                      fullWidth
-                      id="specialty"
-                      label="Culinary Specialty"
-                      name="specialty"
-                      placeholder="e.g., Italian Cuisine, Pastry, Vegan..."
-                      value={chefFormData.specialty}
-                      onChange={handleChefChange}
-                    />
-                  </Grid>
-                  
+                <Grid container spacing={2} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Container sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 2 }}> 
+                    <Grid item xs={12} sx={{ mb: 2 }}>
+                      <TextField
+                        required
+                        fullWidth
+                        id="specialty"
+                        label="Culinary Specialty"
+                        name="specialty"
+                        placeholder="e.g., Italian Cuisine, Pastry, Vegan..."
+                        value={chefFormData.specialty}
+                        onChange={handleChefChange}
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12}>
+                      <TextField
+                        required
+                        fullWidth
+                        id="experience"
+                        label="Experience (years)"
+                        name="experience"
+                        type="number"
+                        inputProps={{ min: 0 }}
+                        value={chefFormData.experience}
+                        onChange={handleChefChange}
+                      />
+                    </Grid>
+                  </Container>
+
                   <Grid item xs={12}>
                     <TextField
                       required
@@ -278,19 +301,6 @@ function Register() {
                       rows={4}
                       placeholder="Tell us about yourself and your culinary journey..."
                       value={chefFormData.bio}
-                      onChange={handleChefChange}
-                    />
-                  </Grid>
-                    <Grid item xs={12}>
-                    <TextField
-                      required
-                      fullWidth
-                      id="experience"
-                      label="Experience (years)"
-                      name="experience"
-                      type="number"
-                      inputProps={{ min: 0 }}
-                      value={chefFormData.experience}
                       onChange={handleChefChange}
                     />
                   </Grid>
