@@ -196,61 +196,65 @@ function Register() {
                     </label>
               </Box>
             </Grid>
-            <Grid container spacing={2} sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Grid container spacing={2} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               
               
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="username"
-                  label="Username"
-                  name="username"
-                  autoComplete="username"
-                  value={userFormData.username}
-                  onChange={handleUserChange}
-                />
-              </Grid>
+              <Container sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 2, gap: 2 }}>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    id="username"
+                    label="Username"
+                    name="username"
+                    autoComplete="username"
+                    value={userFormData.username}
+                    onChange={handleUserChange}
+                  />
+                </Grid>
+                
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    id="email"
+                    label="Email Address"
+                    name="email"
+                    autoComplete="email"
+                    value={userFormData.email}
+                    onChange={handleUserChange}
+                  />
+                </Grid>
+              </Container>
               
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="email"
-                  label="Email Address"
-                  name="email"
-                  autoComplete="email"
-                  value={userFormData.email}
-                  onChange={handleUserChange}
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  name="password"
-                  label="Password"
-                  type="password"
-                  id="password"
-                  autoComplete="new-password"
-                  value={userFormData.password}
-                  onChange={handleUserChange}
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  name="confirmPassword"
-                  label="Confirm Password"
-                  type="password"
-                  id="confirmPassword"
-                  value={userFormData.confirmPassword}
-                  onChange={handleUserChange}
-                />
-              </Grid>
+              <Container sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 2, gap: 2 }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    required
+                    fullWidth
+                    name="password"
+                    label="Password"
+                    type="password"
+                    id="password"
+                    autoComplete="new-password"
+                    value={userFormData.password}
+                    onChange={handleUserChange}
+                  />
+                </Grid>
+                
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    required
+                    fullWidth
+                    name="confirmPassword"
+                    label="Confirm Password"
+                    type="password"
+                    id="confirmPassword"
+                    value={userFormData.confirmPassword}
+                    onChange={handleUserChange}
+                  />
+                </Grid>
+              </Container>
             </Grid>
             
             {/* Chef specific fields */}
@@ -261,8 +265,8 @@ function Register() {
                 </Typography>
                 
                 <Grid container spacing={2} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <Container sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 2 }}> 
-                    <Grid item xs={12} sx={{ mb: 2 }}>
+                  <Container sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 2, gap: 2 }}> 
+                    <Grid item xs={12}>
                       <TextField
                         required
                         fullWidth
