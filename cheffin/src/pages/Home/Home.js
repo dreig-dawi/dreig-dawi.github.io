@@ -257,7 +257,7 @@ function Home() {
             <TextField
               fullWidth
               variant="outlined"
-              placeholder="Search for recipes, chefs, or ingredients..."
+              placeholder="Search for recipes, dishes, or ingredients..."
               value={searchTerm}
               onChange={handleSearch}
               sx={{ 
@@ -277,8 +277,9 @@ function Home() {
           </Paper>
         </Fade>
         
-        {/* Featured Chefs Section */}
-        <Box sx={{ mb: 8 }}>
+        {/* Featured Chefs Section - Only shown when search bar is empty */}
+        {!searchTerm && (
+          <Box sx={{ mb: 8 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
             <Box>
               <Typography 
@@ -427,8 +428,8 @@ function Home() {
               </Box>
             )}
           </Grid>
-        </Box>
-          {/* Recent Posts Feed */}
+        </Box>)}
+        {/* Recent Posts Feed */}
         <Box sx={{ mb: 8 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
             <Box>
