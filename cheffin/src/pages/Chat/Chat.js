@@ -185,43 +185,36 @@ function Chat() {
       setLoading(false);
       return [];
     }
-  }, [currentUser, username, recipient, fetchRecipientProfile]);
-  // Helper function to update conversations list when a new message is received
+  }, [currentUser, username, recipient, fetchRecipientProfile]);  // Helper function to update conversations list when a new message is received
   const updateConversationsList = useCallback((newMessage) => {
     if (!currentUser) return;
     
     setConversations(prevConversations => {
       // Determine if sender or recipient
       const isReceiver = newMessage.senderUsername !== currentUser.username;
-      const conversationParticipantId = isReceiver ? newMessage.senderId : newMessage.recipientId;
-      const conversationUsername = isReceiver ? newMessage.senderUsername : newMessage.recipientUsername;
-      const profilePicture = isReceiver ? newMessage.senderProfilePicture : newMessage.recipientProfilePicture;
+      const targetUsername = isReceiver ? newMessage.senderUsername : newMessage.recipientUsername;
       
-      // Check if conversation exists
-      const conversationExists = prevConversations.some(
-        conv => conv.participantId === conversationParticipantId
-      );
+      // Find the existing conversation by username
+      const existingConversation = prevConversations.find(conv => conv.username === targetUsername);
       
-      if (!conversationExists) {
-        // Add new conversation
+      if (!existingConversation) {
+        // Add new conversation only if it doesn't exist
         return [...prevConversations, {
-          participantId: conversationParticipantId,
-          username: conversationUsername,
+          participantId: isReceiver ? newMessage.senderId : newMessage.recipientId,
+          username: targetUsername,
           lastMessage: newMessage.content,
           timestamp: newMessage.timestamp,
-          profilePicture: profilePicture
+          profilePicture: isReceiver ? newMessage.senderProfilePicture : newMessage.recipientProfilePicture
         }];
       }
       
       // Update existing conversation
       return prevConversations.map(conv => {
-        if (conv.participantId === conversationParticipantId) {
+        if (conv.username === targetUsername) {
           return {
             ...conv,
             lastMessage: newMessage.content,
-            timestamp: newMessage.timestamp,
-            // Preserve the existing profile picture if not provided in the message
-            profilePicture: profilePicture || conv.profilePicture
+            timestamp: newMessage.timestamp
           };
         }
         return conv;
