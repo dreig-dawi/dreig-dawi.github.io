@@ -21,15 +21,20 @@ import './ChefProfile.css';
 import './experience-badge.css';
 import './chef-bio-pattern.css';
 import './profile-picture-upload.css';
+import { useTheme } from '@mui/material/styles';
 
 function ChefProfile() {
   const { username } = useParams();
   const { currentUser, isAuthenticated, isChef, updateProfile } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
   
   const [loading, setLoading] = useState(true);
   const [chefData, setChefData] = useState(null);
-  const [posts, setPosts] = useState([]);  const [openUploadDialog, setOpenUploadDialog] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [expandedPosts, setExpandedPosts] = useState({});
+  const [tab, setTab] = useState(0);
+  const [openUploadDialog, setOpenUploadDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [uploadData, setUploadData] = useState({
     title: '',
@@ -622,10 +627,11 @@ function ChefProfile() {
           <Box role="tabpanel">
             <Grid container spacing={3} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto', justifyContent: 'center' }}>{posts.length > 0 ? (
               posts.map(post => (
-                <Grid item xs={12} sm={6} md={6} key={post.id}>
-                  <Card className="post-card" sx={{
+                <Grid item xs={12} sm={6} md={6} key={post.id}>                  <Card className="post-card" sx={{
                     borderRadius: '12px',
                     overflow: 'hidden',
+                    display: 'flex', 
+                    flexDirection: 'column',
                     boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                     '&:hover': {
                       boxShadow: '0 12px 28px rgba(241, 106, 45, 0.15)',
@@ -700,32 +706,64 @@ function ChefProfile() {
                           />
                         </Box>
                       )}
-                    </CardMedia>
-                    <CardContent>
+                    </CardMedia>                    <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                       <Typography variant="h6" gutterBottom sx={{
                         color: '#F16A2D',
                         fontWeight: 500
                       }}>{post.title}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {post.description.length > 120 ?
-                          `${post.description.substring(0, 120)}...` : post.description}
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary" 
+                        paragraph
+                        sx={{ 
+                          mb: 2,
+                          flexGrow: 1,
+                          display: '-webkit-box',
+                          WebkitLineClamp: expandedPosts[post.id] ? 'unset' : 3,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        {post.description}
                       </Typography>
-    
-                      {isCurrentChef && (
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                          <IconButton
-                            onClick={() => handleDeletePost(post.id)}
-                            sx={{
-                              color: 'white',
-                              background: 'linear-gradient(135deg, #f48b4a 0%, #F16A2D 100%) !important',
-                              '&:hover': { opacity: 0.9 },
-                              boxShadow: '0 4px 8px rgba(241, 106, 45, 0.2)'
-                            }}
+                      
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
+                        <Button 
+                          size="small"
+                          variant="text"
+                          onClick={() => setExpandedPosts(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
+                          sx={{ 
+                            color: '#F16A2D',
+                            fontWeight: 500,
+                            '&:hover': { bgcolor: 'rgba(241, 106, 45, 0.08)' }
+                          }}
+                        >
+                          {expandedPosts[post.id] ? 'Show Less' : 'View Details'}
+                        </Button>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography 
+                            variant="caption" 
+                            color="text.secondary"
                           >
-                            <DeleteIcon />
-                          </IconButton>
+                            {new Date(post.createdAt).toLocaleDateString()}
+                          </Typography>
+                          {isCurrentChef && (
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDeletePost(post.id)}
+                              sx={{
+                                color: 'white',
+                                background: 'linear-gradient(135deg, #f48b4a 0%, #F16A2D 100%) !important',
+                                '&:hover': { opacity: 0.9 },
+                                boxShadow: '0 4px 8px rgba(241, 106, 45, 0.2)'
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          )}
                         </Box>
-                      )}
+                      </Box>
                     </CardContent>
                   </Card>
                 </Grid>
