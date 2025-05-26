@@ -102,10 +102,19 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (profileData) => {
     setError(null);
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await axios.put(`${endpoint}/users/profile`, profileData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const token = localStorage.getItem('authToken');    // Handle profile picture if it's a data URL
+    const updatedProfileData = { ...profileData };
+    if (profileData.profilePicture?.startsWith('data:')) {
+      // Extract base64 data by removing the prefix
+      updatedProfileData.profilePicture = profileData.profilePicture.split(',')[1];
+    }
+
+    const response = await axios.put(`${endpoint}/users/profile`, updatedProfileData, {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      }
+    });
       setCurrentUser(response.data);
       return response.data;
     } catch (error) {

@@ -131,29 +131,33 @@ function ChefProfile() {
       ...prevState,
       [name]: value
     }));
-  };
-  const handleProfileImageUpload = (e) => {
+  };  const handleProfileImageUpload = (e) => {
     const file = e.target.files[0];
     
     if (file) {
-      // Store the file reference
-      // (similar to setProfilePicture(file) in Register.js)
-      
-      // Convert image to data URL for preview and storage
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size too large. Maximum size is 5MB.');
+        return;
+      }
+
+      // Convert image to data URL
       const reader = new FileReader();
       reader.onloadend = () => {
-        // Get the full data URL including prefix (data:image/png;base64,)
+        // Get the full data URL including prefix (data:image/xxx;base64,)
         const fullDataUrl = reader.result;
         
         // Set preview with full data URL
         setProfileImagePreview(fullDataUrl);
         
-        // Update edit profile data with the full data URL string
-        // This matches Register.js and database expectations
+        // Update edit profile data with the full data URL
         setEditProfileData(prevState => ({
           ...prevState,
           profilePicture: fullDataUrl
         }));
+      };
+      reader.onerror = () => {
+        alert('Error reading file. Please try again.');
       };
       reader.readAsDataURL(file);
     }
@@ -273,20 +277,23 @@ function ChefProfile() {
         alert('Failed to create post. Please try again.');
       }
     }
-  };    const handleUpdateProfile = async (e) => {
+  };  const handleUpdateProfile = async (e) => {
     e.preventDefault();
     
     setIsUpdatingProfile(true); // Start loading
     
     try {
-      // Create update data based on user type
-      const updateData = isChef() ? {
-        bio: editProfileData.bio,
-        specialty: editProfileData.specialty,
-        experience: editProfileData.experience,
-        profilePicture: editProfileData.profilePicture
-      } : {
-        profilePicture: editProfileData.profilePicture
+      // Create update data with only the fields we want to update
+      const updateData = {
+        username: chefData.username,
+        email: chefData.email,
+        profilePicture: editProfileData.profilePicture,
+        // Only include chef-specific fields if user is a chef
+        ...(isChef() ? {
+          bio: editProfileData.bio,
+          specialty: editProfileData.specialty,
+          experience: editProfileData.experience ? parseInt(editProfileData.experience, 10) : null
+        } : {})
       };
       
       await updateProfile(updateData);
@@ -298,14 +305,22 @@ function ChefProfile() {
           bio: editProfileData.bio,
           specialty: editProfileData.specialty,
           experience: editProfileData.experience,
-        } : {}),
-        profilePicture: editProfileData.profilePicture
+        } : {}),        profilePicture: editProfileData.profilePicture
       }));
+
+      // Update the profile preview with the full data URL if present
+      if (editProfileData.profilePicture && editProfileData.profilePicture.startsWith('data:')) {
+        setProfileImagePreview(editProfileData.profilePicture);
+      } else if (editProfileData.profilePicture) {
+        // If it's just base64, reconstruct the data URL
+        setProfileImagePreview(`data:image/png;base64,${editProfileData.profilePicture}`);
+      }
       
-      handleCloseEditDialog();
-    } catch (error) {
+      handleCloseEditDialog();    } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile. Please try again.');
+      console.error('Error details:', error.response?.data || error.message);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update profile';
+      alert(`Failed to update profile: ${errorMessage}`);
     } finally {
       setIsUpdatingProfile(false); // End loading
     }

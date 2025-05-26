@@ -13,6 +13,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import EditProfileDialog from '../Profile/EditProfileDialog';
 import './Navbar.css';
 
 function Navbar() {
@@ -23,6 +24,7 @@ function Navbar() {
   
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
   
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -44,9 +46,21 @@ function Navbar() {
   };
   
   const handleNavigation = (path) => {
-    navigate(path);
+    if (path === `/chef/${currentUser.username}` && !isChef()) {
+      // For non-chef users, open EditProfileDialog instead
+      setEditProfileOpen(true);
+    } else {
+      navigate(path);
+    }
     handleMenuClose();
     setMobileMenuOpen(false);
+  };
+
+  const handleProfileUpdate = (updatedData) => {
+    // Update currentUser data after profile update
+    if (currentUser) {
+      Object.assign(currentUser, updatedData);
+    }
   };
   
   const menuId = 'primary-account-menu';
@@ -280,6 +294,13 @@ function Navbar() {
       </AppBar>
       {renderMenu}
       {mobileMenu}
+      
+      <EditProfileDialog
+        open={editProfileOpen}
+        onClose={() => setEditProfileOpen(false)}
+        userData={currentUser}
+        onProfileUpdate={handleProfileUpdate}
+      />
     </div>
   );
 }
