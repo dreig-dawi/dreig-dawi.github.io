@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   TextField, Button, Typography, Container, Box, Alert, Paper, 
-  Tabs, Tab, FormControlLabel, Switch, Grid, Avatar, IconButton
+  Tabs, Tab, Grid, Avatar, IconButton
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import './Register.css';
@@ -13,7 +13,7 @@ function Register() {
   const [isChef, setIsChef] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [profilePicture, setProfilePicture] = useState(null);
+  // No need to store the file object since we use the dataURL
   const [profilePreview, setProfilePreview] = useState(null);
   
   const { register } = useAuth();
@@ -53,11 +53,9 @@ function Register() {
       [name]: value
     }));
   };
-  
-  const handleProfilePicture = (e) => {
+    const handleProfilePicture = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setProfilePicture(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfilePreview(reader.result);
@@ -141,7 +139,8 @@ function Register() {
             alignItems: 'center',
             p: { xs: 2, sm: 4 }
           }}
-        >          <Container
+        >          <Grid
+            container
             sx={{
               display: 'flex',
               flexDirection: 'column',
@@ -173,18 +172,16 @@ function Register() {
                 <Tab label="Chef" />
               </Tabs>
             </div>
-          </Container>
+          </Grid>
 
           {error && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {error}
             </Alert>
-          )}
-
-          <Box
+          )}          <Box
             component="form"
             onSubmit={handleSubmit}
-            sx={{ mt: 1, width: '100%' }}
+            sx={{ mt: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
           >
             {/* User information - common for both tabs */}
             <Grid
@@ -193,14 +190,17 @@ function Register() {
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
+                alignItems: 'center',
                 flexDirection: { xs: 'column', sm: 'row' }
               }}
-            >
-              <Box
+            >              <Box
                 sx={{
                   position: 'relative',
-                  display: 'block',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
                   mb: 2,
+                  width: '100%',
                   textAlign: 'center'
                 }}
               >
@@ -245,9 +245,8 @@ function Register() {
                 justifyContent: 'center',
                 alignItems: 'center'
               }}
-            >
-              <Grid container spacing={2} sx={{ mb: 2, maxWidth: '600px' }}>
-                <Grid item xs={12} sm={6}>
+            >              <Grid container spacing={2} sx={{ mb: 2, maxWidth: '600px', display: 'flex', justifyContent: 'center' }}>
+                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
                   <TextField
                     required
                     fullWidth
@@ -258,9 +257,10 @@ function Register() {
                     value={userFormData.username}
                     onChange={handleUserChange}
                     inputProps={{ maxLength: 30 }}
+                    sx={{ maxWidth: '280px' }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
                   <TextField
                     required
                     fullWidth
@@ -271,11 +271,11 @@ function Register() {
                     value={userFormData.email}
                     onChange={handleUserChange}
                     inputProps={{ maxLength: 100 }}
+                    sx={{ maxWidth: '280px' }}
                   />
                 </Grid>
-              </Grid>
-              <Grid container spacing={2} sx={{ mb: 2, maxWidth: '600px' }}>
-                <Grid item xs={12} sm={6}>
+              </Grid>              <Grid container spacing={2} sx={{ mb: 2, maxWidth: '600px', display: 'flex', justifyContent: 'center' }}>
+                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
                   <TextField
                     required
                     fullWidth
@@ -287,9 +287,10 @@ function Register() {
                     value={userFormData.password}
                     onChange={handleUserChange}
                     inputProps={{ maxLength: 64 }}
+                    sx={{ maxWidth: '280px' }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
                   <TextField
                     required
                     fullWidth
@@ -300,6 +301,7 @@ function Register() {
                     value={userFormData.confirmPassword}
                     onChange={handleUserChange}
                     inputProps={{ maxLength: 64 }}
+                    sx={{ maxWidth: '280px' }}
                   />
                 </Grid>
               </Grid>

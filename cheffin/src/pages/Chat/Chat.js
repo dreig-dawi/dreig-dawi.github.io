@@ -500,7 +500,7 @@ function Chat() {
                     >
                       <Box className="conversation-avatar">
                         <Avatar 
-                          src={conv.profilePicture || '/icons/default-avatar.png'}
+                          src={'/icons/default-avatar.png'}
                           alt={conv.username}
                         >
                           {conv.username.charAt(0).toUpperCase()}
