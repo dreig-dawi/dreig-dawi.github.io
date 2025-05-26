@@ -139,7 +139,8 @@ function Register() {
             alignItems: 'center',
             p: { xs: 2, sm: 4 }
           }}
-        >          <Grid
+        >
+          <Grid
             container
             sx={{
               display: 'flex',
@@ -178,7 +179,8 @@ function Register() {
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {error}
             </Alert>
-          )}          <Box
+          )}
+          <Box
             component="form"
             onSubmit={handleSubmit}
             sx={{ mt: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
@@ -193,7 +195,8 @@ function Register() {
                 alignItems: 'center',
                 flexDirection: { xs: 'column', sm: 'row' }
               }}
-            >              <Box
+            >
+              <Box
                 sx={{
                   position: 'relative',
                   display: 'flex',
@@ -236,7 +239,8 @@ function Register() {
                   </IconButton>
                 </label>
               </Box>
-            </Grid>            <Grid
+            </Grid>
+            <Grid
               container
               spacing={2}
               sx={{
@@ -245,8 +249,9 @@ function Register() {
                 justifyContent: 'center',
                 alignItems: 'center'
               }}
-            >              <Grid container spacing={2} sx={{ mb: 2, maxWidth: '600px', display: 'flex', justifyContent: 'center' }}>
-                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+            >
+              <Grid container spacing={2} sx={{ mb: 2, maxWidth: '600px', display: 'flex', justifyContent: 'center' }}>
+                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                   <TextField
                     required
                     fullWidth
@@ -257,10 +262,10 @@ function Register() {
                     value={userFormData.username}
                     onChange={handleUserChange}
                     inputProps={{ maxLength: 30 }}
-                    sx={{ maxWidth: '280px' }}
+                    sx={{ maxWidth: '400px' }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                   <TextField
                     required
                     fullWidth
@@ -271,11 +276,12 @@ function Register() {
                     value={userFormData.email}
                     onChange={handleUserChange}
                     inputProps={{ maxLength: 100 }}
-                    sx={{ maxWidth: '280px' }}
+                    sx={{ maxWidth: '400px' }}
                   />
                 </Grid>
-              </Grid>              <Grid container spacing={2} sx={{ mb: 2, maxWidth: '600px', display: 'flex', justifyContent: 'center' }}>
-                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+              </Grid>
+              <Grid container spacing={2} sx={{ mb: 2, maxWidth: '600px', display: 'flex', justifyContent: 'center' }}>
+                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                   <TextField
                     required
                     fullWidth
@@ -287,10 +293,10 @@ function Register() {
                     value={userFormData.password}
                     onChange={handleUserChange}
                     inputProps={{ maxLength: 64 }}
-                    sx={{ maxWidth: '280px' }}
+                    sx={{ maxWidth: '400px' }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                   <TextField
                     required
                     fullWidth
@@ -301,11 +307,12 @@ function Register() {
                     value={userFormData.confirmPassword}
                     onChange={handleUserChange}
                     inputProps={{ maxLength: 64 }}
-                    sx={{ maxWidth: '280px' }}
+                    sx={{ maxWidth: '400px' }}
                   />
                 </Grid>
               </Grid>
-            </Grid>            {/* Chef specific fields */}
+            </Grid>
+            {/* Chef specific fields */}
             {isChef && (
               <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <Typography variant="h6" gutterBottom align="center">
@@ -322,7 +329,8 @@ function Register() {
                     alignItems: 'center',
                     maxWidth: '600px'
                   }}
-                >                  <Grid container spacing={2} 
+                >
+                  <Grid container spacing={2} 
                     sx={{
                       display: 'flex',
                       flexDirection: { xs: 'column', sm: 'row' },
@@ -332,7 +340,8 @@ function Register() {
                       width: '100%',
                       maxWidth: '600px'
                     }}
-                  ><Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+                  >
+                    <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                       <TextField
                         required
                         fullWidth
@@ -344,12 +353,12 @@ function Register() {
                         onChange={handleChefChange}
                         inputProps={{ maxLength: 50 }}
                         sx={{
-                          width: '100%'
+                          maxWidth: '400px'
                         }}
                       />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                       <TextField
                         required
                         fullWidth
@@ -361,10 +370,12 @@ function Register() {
                         value={chefFormData.experience}
                         onChange={handleChefChange}
                         sx={{
-                          width: '100%'
+                          maxWidth: '400px'
                         }}
-                      />                    </Grid>
-                  </Grid>                  <Grid item xs={12} sx={{ width: '100%', maxWidth: '600px' }}>
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid item xs={12} sx={{ width: '100%', maxWidth: '600px' }}>
                     <TextField
                       required
                       fullWidth
@@ -382,7 +393,8 @@ function Register() {
                   </Grid>
                 </Grid>
               </Box>
-            )}            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            )}
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
               <Button
                 type="submit"
                 variant="contained"

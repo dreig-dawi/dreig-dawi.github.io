@@ -32,12 +32,28 @@ function Chat() {
   
   // Polling interval reference
   const pollIntervalRef = useRef(null);
-  const messagesEndRef = useRef(null);  // Fetch profile of the chat recipient (with caching)
+  const messagesEndRef = useRef(null);  // Cache for profiles to avoid unnecessary fetches
+  const profileCache = useRef({});
+  
+  // Fetch profile of the chat recipient (with caching)
   const fetchRecipientProfile = useCallback(async (recipientUsername) => {
-    // Don't fetch if we already have this recipient's profile
+    // Skip if username is invalid
+    if (!recipientUsername) {
+      console.log('Invalid username provided to fetchRecipientProfile');
+      return null;
+    }
+    
+    // Check memory cache first
+    if (profileCache.current[recipientUsername]) {
+      console.log(`Using cached profile for ${recipientUsername}`);
+      return profileCache.current[recipientUsername];
+    }
+    
+    // Check if this is the current recipient we're chatting with
     if (recipient && recipient.username === recipientUsername) {
-      console.log(`Already have profile for ${recipientUsername}, skipping fetch`);
-      return; // Already have this recipient's profile
+      console.log(`Already have active recipient profile for ${recipientUsername}`);
+      profileCache.current[recipientUsername] = recipient;
+      return recipient; // Return cached profile
     }
     
     console.log(`Fetching profile for user: ${recipientUsername}`);
@@ -46,11 +62,21 @@ function Chat() {
       
       const response = await axios.get(url);
       console.log(`Successfully fetched profile for ${recipientUsername}`);
-      setRecipient(response.data);
+      
+      // Cache the result
+      profileCache.current[recipientUsername] = response.data;
+      
+      // Only set as active recipient if it's the one we're actively chatting with
+      if (!recipient || recipient.username === recipientUsername) {
+        setRecipient(response.data);
+      }
+      
+      return response.data; // Return the profile data
     } catch (error) {
       console.error('Error fetching recipient profile:', error);
       console.error('Error details:', error.response?.data || error.message);
       setError(`Failed to load user profile: ${error.response?.data?.message || error.message}`);
+      return null;
     }
   }, [recipient]);
   
@@ -92,11 +118,35 @@ function Chat() {
           'Accept': 'application/json'
         }
       });
-      
-      let conversationsData = [];
+        let conversationsData = [];
       if (Array.isArray(response.data)) {
         conversationsData = response.data;
+        
+        // Set conversations first to show the list quickly
         setConversations(conversationsData);
+        
+        // Then fetch profile pictures for all conversations in parallel
+        Promise.all(
+          conversationsData.map(async (conv) => {
+            try {
+              // Fetch profile for each conversation participant
+              const profileData = await fetchRecipientProfile(conv.username);
+              if (profileData && profileData.profilePicture) {
+                // Update this specific conversation with the profile picture
+                setConversations(prev => 
+                  prev.map(c => 
+                    c.participantId === conv.participantId 
+                      ? { ...c, profilePicture: profileData.profilePicture }
+                      : c
+                  )
+                );
+              }
+            } catch (err) {
+              console.error(`Failed to fetch profile for ${conv.username}:`, err);
+            }
+            return conv;
+          })
+        );
       } else {
         console.warn('Backend returned non-array response for conversations:', response.data);
         setConversations([]);
@@ -136,7 +186,7 @@ function Chat() {
       return [];
     }
   }, [currentUser, username, recipient, fetchRecipientProfile]);
-    // Helper function to update conversations list when a new message is received
+  // Helper function to update conversations list when a new message is received
   const updateConversationsList = useCallback((newMessage) => {
     if (!currentUser) return;
     
@@ -145,6 +195,7 @@ function Chat() {
       const isReceiver = newMessage.senderUsername !== currentUser.username;
       const conversationParticipantId = isReceiver ? newMessage.senderId : newMessage.recipientId;
       const conversationUsername = isReceiver ? newMessage.senderUsername : newMessage.recipientUsername;
+      const profilePicture = isReceiver ? newMessage.senderProfilePicture : newMessage.recipientProfilePicture;
       
       // Check if conversation exists
       const conversationExists = prevConversations.some(
@@ -157,7 +208,8 @@ function Chat() {
           participantId: conversationParticipantId,
           username: conversationUsername,
           lastMessage: newMessage.content,
-          timestamp: newMessage.timestamp
+          timestamp: newMessage.timestamp,
+          profilePicture: profilePicture
         }];
       }
       
@@ -167,7 +219,9 @@ function Chat() {
           return {
             ...conv,
             lastMessage: newMessage.content,
-            timestamp: newMessage.timestamp
+            timestamp: newMessage.timestamp,
+            // Preserve the existing profile picture if not provided in the message
+            profilePicture: profilePicture || conv.profilePicture
           };
         }
         return conv;
@@ -210,10 +264,27 @@ function Chat() {
         id: participantId,
         username: participantUsername
       });
-      console.log(`Active conversation set to ID: ${participantId}, username: ${participantUsername}`);
-      
-      // Get recipient details
-      fetchRecipientProfile(participantUsername);
+      console.log(`Active conversation set to ID: ${participantId}, username: ${participantUsername}`);      // Get recipient details
+      try {
+        const profileData = await fetchRecipientProfile(participantUsername);
+        
+        // Update the profile picture in the conversations list
+        if (profileData && profileData.profilePicture) {
+          setConversations(prevConversations => 
+            prevConversations.map(conv => {
+              if (conv.participantId === participantId || conv.username === participantUsername) {
+                return {
+                  ...conv,
+                  profilePicture: profileData.profilePicture
+                };
+              }
+              return conv;
+            })
+          );
+        }
+      } catch (err) {
+        console.error("Error updating profile picture:", err);
+      }
       
       // On mobile, show the chat and hide the conversations list
       if (isMobileView) {
@@ -342,7 +413,28 @@ function Chat() {
   // Auto-scroll to the bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages]);  // Helper function to get current user's profile picture
+  const getCurrentUserProfilePicture = useCallback(() => {
+    return currentUser?.profilePicture || null;
+  }, [currentUser]);
+  
+  // Helper function to get recipient's profile picture
+  const getRecipientProfilePicture = useCallback((username) => {
+    // Check if it's in the cache
+    if (profileCache.current[username]) {
+      return profileCache.current[username].profilePicture || null;
+    }
+    
+    // Check if it's the current recipient
+    if (recipient && recipient.username === username) {
+      return recipient.profilePicture || null;
+    }
+    
+    // Find in conversations
+    const conv = conversations.find(c => c.username === username);
+    return conv?.profilePicture || null;
+  }, [recipient, conversations]);
+
   const handleSendMessage = async () => {
     if (!message.trim() || !activeConversation) return;
     
@@ -364,6 +456,10 @@ function Chat() {
         content: message.trim()
       };
       
+      // Get profile pictures for the optimistic update
+      const senderProfilePicture = getCurrentUserProfilePicture();
+      const recipientProfilePicture = getRecipientProfilePicture(activeConversation.username);
+      
       // Optimistically add message to UI
       const optimisticMessage = {
         id: `temp-${Date.now()}`,
@@ -371,7 +467,9 @@ function Chat() {
         senderUsername: currentUser.username,
         recipientUsername: activeConversation.username,
         content: message.trim(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        senderProfilePicture: senderProfilePicture,
+        recipientProfilePicture: recipientProfilePicture
       };
       
       // Add to messages
@@ -497,10 +595,9 @@ function Chat() {
                       button
                       className={`conversation-item ${activeConversation?.id === conv.participantId ? 'active' : ''}`}
                       onClick={() => fetchMessages(conv.participantId, conv.username)}
-                    >
-                      <Box className="conversation-avatar">
+                    >                      <Box className="conversation-avatar">
                         <Avatar 
-                          src={'/icons/default-avatar.png'}
+                          src={conv.profilePicture || '/icons/default-avatar.png'}
                           alt={conv.username}
                         >
                           {conv.username.charAt(0).toUpperCase()}
@@ -543,9 +640,8 @@ function Chat() {
                     <ArrowBackIcon />
                   </IconButton>
                 )}
-                
-                <Avatar 
-                  src={recipient?.profilePicture} 
+                  <Avatar 
+                  src={recipient?.profilePicture || '/icons/default-avatar.png'} 
                   alt={activeConversation.username}
                   sx={{ width: 40, height: 40, mr: 2 }}
                 >
