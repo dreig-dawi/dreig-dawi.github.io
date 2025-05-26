@@ -597,7 +597,7 @@ function Chat() {
                       onClick={() => fetchMessages(conv.participantId, conv.username)}
                     >                      <Box className="conversation-avatar">
                         <Avatar 
-                          src={conv.profilePicture || '/icons/default-avatar.png'}
+                          src={conv.profilePicture ? `data:image/jpeg;base64,${conv.profilePicture}` : '/icons/default-avatar.png'}
                           alt={conv.username}
                         >
                           {conv.username.charAt(0).toUpperCase()}
@@ -639,9 +639,8 @@ function Chat() {
                   <IconButton onClick={goBackToConversations} sx={{ mr: 1 }}>
                     <ArrowBackIcon />
                   </IconButton>
-                )}
-                  <Avatar 
-                  src={recipient?.profilePicture || '/icons/default-avatar.png'} 
+                )}                  <Avatar 
+                  src={recipient?.profilePicture ? `data:image/jpeg;base64,${recipient.profilePicture}` : '/icons/default-avatar.png'} 
                   alt={activeConversation.username}
                   sx={{ width: 40, height: 40, mr: 2 }}
                 >

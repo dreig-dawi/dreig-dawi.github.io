@@ -50,11 +50,14 @@ function ChefProfile() {
   const [isCurrentChef, setIsCurrentChef] = useState(false);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-  
-  useEffect(() => {
+    useEffect(() => {
     // Determine if the profile being viewed belongs to the current user
     if (isAuthenticated() && currentUser) {
+      setIsCurrentUser(currentUser.username === username);
       setIsCurrentChef(currentUser.username === username);
+    } else {
+      setIsCurrentUser(false);
+      setIsCurrentChef(false);
     }
     
     // Fetch chef profile data
@@ -486,8 +489,7 @@ function ChefProfile() {
                   <LocalDiningIcon />
                   {chefData.experience} years of culinary experience
                 </Typography>
-              )}                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                {isCurrentUser ? (
+                )}                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>                {isCurrentUser && (
                   <Button
                     variant="contained"
                     startIcon={<EditIcon />}
@@ -498,23 +500,31 @@ function ChefProfile() {
                       '&:hover': { bgcolor: '#f8f8f8' },
                       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                     }}
-                  >
-                    Edit Profile
-                  </Button>                ) : currentUser && username !== currentUser.username ? (
+                  >                    Edit Profile
+                  </Button>
+                )}
+                {!isCurrentUser && isAuthenticated() && (
                   <Button
                     variant="contained"
                     startIcon={<MessageIcon />}
                     onClick={handleStartChat}
                     sx={{
-                      bgcolor: 'white',
-                      color: '#F16A2D',
-                      '&:hover': { bgcolor: '#f8f8f8' },
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                      position: 'fixed',
+                      bottom: '2rem',
+                      right: '2rem',
+                      bgcolor: '#F16A2D',
+                      color: 'white',
+                      '&:hover': { bgcolor: '#d45c26' },
+                      boxShadow: '0 4px 12px rgba(241, 106, 45, 0.3)',
+                      zIndex: 1000,
+                      borderRadius: '28px',
+                      py: 1.5,
+                      px: 3,
                     }}
                   >
-                    Chat with Chef
+                    Chat with {chefData.username}
                   </Button>
-                ) : null}
+                )}
               </Box>
             </Box>
           </Box>

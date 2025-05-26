@@ -229,14 +229,18 @@ function ChefsList() {
                             justifyContent: 'center',
                             alignItems: 'center'
                           }}
-                        >
-                          <Avatar 
-                            src={chef.profilePicture || '/icons/chef-hat.svg'}
+                        >                          <Avatar 
+                            src={
+                              chef.profilePicture 
+                                ? `data:image/jpeg;base64,${chef.profilePicture}` 
+                                : '/icons/orange-chef.png'
+                            }
                             sx={{ 
                               width: 90, 
                               height: 90, 
                               border: '4px solid white',
-                              boxShadow: '0 4px 10px rgba(0,0,0,0.15)'
+                              boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                              backgroundColor: 'white'
                             }}
                           />
                         </Box>
