@@ -41,15 +41,16 @@ function ChefProfile() {
     specialty: '',
     experience: '',
     profilePicture: ''
-  });
-  const [profileImagePreview, setProfileImagePreview] = useState(null);
+  });  const [profileImagePreview, setProfileImagePreview] = useState(null);
   const [isCurrentChef, setIsCurrentChef] = useState(false);
+  const [isCurrentUser, setIsCurrentUser] = useState(false);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   
   useEffect(() => {
     // Determine if the profile being viewed belongs to the current user
     if (isAuthenticated() && currentUser) {
       setIsCurrentChef(currentUser.username === username && isChef());
+      setIsCurrentUser(currentUser.username === username);
     }
     
     // Fetch chef profile data
@@ -80,11 +81,10 @@ function ChefProfile() {
       } catch (error) {
         console.error('Error fetching chef data:', error);
         setLoading(false);
-      }
-    };
+      }    };
     
     fetchChefData();
-  }, [username, currentUser, isAuthenticated, isChef, isCurrentChef]);
+  }, [username, currentUser, isAuthenticated, isChef, isCurrentChef, isCurrentUser]);
     const handleOpenUploadDialog = () => {
     setOpenUploadDialog(true);
   };
@@ -132,22 +132,28 @@ function ChefProfile() {
       [name]: value
     }));
   };
-  
   const handleProfileImageUpload = (e) => {
     const file = e.target.files[0];
     
     if (file) {
-      // Convert image to base64
+      // Store the file reference
+      // (similar to setProfilePicture(file) in Register.js)
+      
+      // Convert image to data URL for preview and storage
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result.split(',')[1];
-        // Update edit profile data with the new image
+        // Get the full data URL including prefix (data:image/png;base64,)
+        const fullDataUrl = reader.result;
+        
+        // Set preview with full data URL
+        setProfileImagePreview(fullDataUrl);
+        
+        // Update edit profile data with the full data URL string
+        // This matches Register.js and database expectations
         setEditProfileData(prevState => ({
           ...prevState,
-          profilePicture: base64String
+          profilePicture: fullDataUrl
         }));
-        // Set preview
-        setProfileImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -267,26 +273,32 @@ function ChefProfile() {
         alert('Failed to create post. Please try again.');
       }
     }
-  };
-    const handleUpdateProfile = async (e) => {
+  };    const handleUpdateProfile = async (e) => {
     e.preventDefault();
     
     setIsUpdatingProfile(true); // Start loading
     
     try {
-      await updateProfile({
+      // Create update data based on user type
+      const updateData = isChef() ? {
         bio: editProfileData.bio,
         specialty: editProfileData.specialty,
         experience: editProfileData.experience,
         profilePicture: editProfileData.profilePicture
-      });
+      } : {
+        profilePicture: editProfileData.profilePicture
+      };
       
-      // Update local chef data
+      await updateProfile(updateData);
+      
+      // Update local chef data based on user type
       setChefData(prevData => ({
         ...prevData,
-        bio: editProfileData.bio,
-        specialty: editProfileData.specialty,
-        experience: editProfileData.experience,
+        ...(isChef() ? {
+          bio: editProfileData.bio,
+          specialty: editProfileData.specialty,
+          experience: editProfileData.experience,
+        } : {}),
         profilePicture: editProfileData.profilePicture
       }));
       
@@ -394,19 +406,47 @@ function ChefProfile() {
               background: 'rgba(255,255,255,0.1)',
               zIndex: 0
             }}
-          />
-          <Box className="profile-header" sx={{ position: 'relative', zIndex: 1 }}>            <Avatar
-              src={chefData.profilePicture || '/icons/orange-chef.png'}
-              sx={{
-                width: 150,
-                height: 150,
-                border: '4px solid white',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
-                backgroundColor: 'white',
-              }}
-            />
+          />          <Box className="profile-header" sx={{ position: 'relative', zIndex: 1 }}>
+            {isCurrentUser ? (
+              <Box className="profile-picture-upload">
+                <Avatar
+                  src={chefData.profilePicture || '/icons/orange-chef.png'}
+                  sx={{
+                    width: 150,
+                    height: 150,
+                    border: '4px solid white',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                    backgroundColor: 'white',
+                  }}
+                />
+                <Box 
+                  component="label" 
+                  className="profile-picture-overlay"
+                  htmlFor="banner-profile-picture-upload"
+                >
+                  <EditIcon className="profile-picture-icon" />
+                </Box>
+                <input
+                  id="banner-profile-picture-upload"
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={handleProfileImageUpload}
+                />
+              </Box>
+            ) : (
+              <Avatar
+                src={chefData.profilePicture || '/icons/orange-chef.png'}
+                sx={{
+                  width: 150,
+                  height: 150,
+                  border: '4px solid white',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                  backgroundColor: 'white',
+                }}
+              />            )}
       
-            <Box className="profile-info">              
+            <Box className="profile-info">
               <Typography variant="h4" sx={{ textShadow: '1px 1px 3px rgba(0,0,0,0.2)' }}>{chefData.username}</Typography>
               <Typography variant="subtitle1" sx={{ color: 'rgba(255,255,255,0.9)', mb: 0.5 }}>
                 {chefData.specialty}
@@ -421,9 +461,8 @@ function ChefProfile() {
                   <LocalDiningIcon />
                   {chefData.experience} years of culinary experience
                 </Typography>
-              )}
-                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                {isCurrentChef ? (
+              )}                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                {isCurrentUser ? (
                   <Button
                     variant="contained"
                     startIcon={<EditIcon />}
@@ -454,53 +493,55 @@ function ChefProfile() {
               </Box>
             </Box>
           </Box>
-        </Box>        
-        {/* Chef Bio */}        
-        <Box className="chef-bio" sx={{
-          my: 4,
-          bgcolor: 'white',
-          borderRadius: '12px',
-          padding: '1.5rem',
-          boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
-          border: '1px solid rgba(241, 106, 45, 0.1)',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          <div className="chef-bio-pattern"></div>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{
-              color: '#F16A2D',
-              position: 'relative',
-              display: 'inline-block',
-              pb: 1,
-              mb: 0,
-              '&:after': {
-                content: '""',
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                width: '40px',
-                height: '3px',
-                backgroundColor: '#F16A2D'
-              }
-            }}>
-              About {chefData.username}
-            </Typography>
+        </Box>        {/* Chef Bio - Only displayed for chef profiles */}        
+        {isChef() && (
+          <Box className="chef-bio" sx={{
+            my: 4,
+            bgcolor: 'white',
+            borderRadius: '12px',
+            padding: '1.5rem',
+            boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+            border: '1px solid rgba(241, 106, 45, 0.1)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div className="chef-bio-pattern"></div>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{
+                color: '#F16A2D',
+                position: 'relative',
+                display: 'inline-block',
+                pb: 1,
+                mb: 0,
+                '&:after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  width: '40px',
+                  height: '3px',
+                  backgroundColor: '#F16A2D'
+                }
+              }}>
+                About {chefData.username}
+              </Typography>
+            </Box>
+            {chefData.bio ? (
+              <Typography variant="body1" sx={{ 
+                lineHeight: 1.7, 
+                color: '#444',
+                position: 'relative',
+                zIndex: 1
+              }}>{chefData.bio}</Typography>
+            ) : (
+              <Typography variant="body1" sx={{ color: '#666', fontStyle: 'italic' }}>
+                This chef hasn't added a bio yet.
+              </Typography>
+            )}
           </Box>
-          {chefData.bio ? (
-            <Typography variant="body1" sx={{ 
-              lineHeight: 1.7, 
-              color: '#444',
-              position: 'relative',
-              zIndex: 1
-            }}>{chefData.bio}</Typography>
-          ) : (
-            <Typography variant="body1" sx={{ color: '#666', fontStyle: 'italic' }}>
-              This chef hasn't added a bio yet.
-            </Typography>
-          )}
-        </Box>        {/* Content Tabs */}      
-        <Box sx={{
+        )}        {/* Content Tabs - Only displayed for chef profiles */}      
+        {isChef() && (
+          <Box sx={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -518,27 +559,28 @@ function ChefProfile() {
               background: 'linear-gradient(90deg, rgba(241, 106, 45, 0.2) 0%, rgba(241, 106, 45, 0.5) 50%, rgba(241, 106, 45, 0.2) 100%)'
             }
           }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <LocalDiningIcon sx={{ color: '#F16A2D', mr: 1, fontSize: 22 }} />
-            <Typography variant="h6" sx={{ 
-              color: '#444', 
-              fontWeight: 500,
-              borderBottom: '3px solid #F16A2D',
-              paddingBottom: '8px',
-              paddingRight: '10px',
-              paddingLeft: '2px'
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <LocalDiningIcon sx={{ color: '#F16A2D', mr: 1, fontSize: 22 }} />
+              <Typography variant="h6" sx={{ 
+                color: '#444', 
+                fontWeight: 500,
+                borderBottom: '3px solid #F16A2D',
+                paddingBottom: '8px',
+                paddingRight: '10px',
+                paddingLeft: '2px'
+              }}>
+                Recipes
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ 
+              color: '#777', 
+              fontStyle: 'italic',
+              mr: 2 
             }}>
-              Recipes
+              {posts.length} {posts.length === 1 ? 'recipe' : 'recipes'} shared
             </Typography>
           </Box>
-          <Typography variant="body2" sx={{ 
-            color: '#777', 
-            fontStyle: 'italic',
-            mr: 2 
-          }}>
-            {posts.length} {posts.length === 1 ? 'recipe' : 'recipes'} shared
-          </Typography>
-        </Box>
+        )}
           {/* Add New Post Button (for chef only) */}
         {isCurrentChef && (
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
@@ -555,9 +597,10 @@ function ChefProfile() {
               Add New Post
             </Button>
           </Box>
-        )}        {/* Content Display */}
-        <Box role="tabpanel">
-          <Grid container spacing={3} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto', justifyContent: 'center' }}>            {posts.length > 0 ? (
+        )}        {/* Content Display - Only shown for chef profiles */}
+        {isChef() && (
+          <Box role="tabpanel">
+            <Grid container spacing={3} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto', justifyContent: 'center' }}>{posts.length > 0 ? (
               posts.map(post => (
                 <Grid item xs={12} sm={6} md={6} key={post.id}>
                   <Card className="post-card" sx={{
@@ -717,9 +760,9 @@ function ChefProfile() {
                   )}
                 </Box>
               </Grid>
-            )}
-          </Grid>
+            )}          </Grid>
         </Box>
+        )}
       
         {/* Upload Content Dialog */}
         <Dialog open={openUploadDialog} onClose={handleCloseUploadDialog} maxWidth="sm" fullWidth onDragOver={(e) => {
@@ -1020,35 +1063,43 @@ function ChefProfile() {
                   Click on the image to upload a new profile picture
                 </Typography>
               </Box>
-              <TextField
-                fullWidth
-                label="Culinary Specialty"
-                name="specialty"
-                value={editProfileData.specialty}
-                onChange={handleEditProfileChange}
-                margin="normal"
-              />              <TextField
-                fullWidth
-                label="Bio"
-                name="bio"
-                value={editProfileData.bio}
-                onChange={handleEditProfileChange}
-                margin="normal"
-                multiline
-                rows={4}
-                placeholder="Share your culinary journey, specialties, and inspiration..."
-                helperText="Your bio will be featured prominently in the About section of your profile"
-              /><TextField
-                fullWidth
-                label="Experience (years)"
-                name="experience"
-                type="number"
-                value={editProfileData.experience}
-                onChange={handleEditProfileChange}
-                margin="normal"
-                inputProps={{ min: 0 }}
-                helperText="Your years of culinary experience will be displayed in your profile header"
-              />
+              
+              {/* Chef-specific fields - only shown to chef users */}
+              {isChef() && (
+                <>
+                  <TextField
+                    fullWidth
+                    label="Culinary Specialty"
+                    name="specialty"
+                    value={editProfileData.specialty}
+                    onChange={handleEditProfileChange}
+                    margin="normal"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Bio"
+                    name="bio"
+                    value={editProfileData.bio}
+                    onChange={handleEditProfileChange}
+                    margin="normal"
+                    multiline
+                    rows={4}
+                    placeholder="Share your culinary journey, specialties, and inspiration..."
+                    helperText="Your bio will be featured prominently in the About section of your profile"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Experience (years)"
+                    name="experience"
+                    type="number"
+                    value={editProfileData.experience}
+                    onChange={handleEditProfileChange}
+                    margin="normal"
+                    inputProps={{ min: 0 }}
+                    helperText="Your years of culinary experience will be displayed in your profile header"
+                  />
+                </>
+              )}
             </Box>
           </DialogContent>          <DialogActions>
             <Button 

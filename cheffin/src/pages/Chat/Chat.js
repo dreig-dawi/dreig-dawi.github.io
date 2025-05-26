@@ -478,28 +478,7 @@ function Chat() {
   }
   
   return (
-    <Container maxWidth="lg" className="chat-container">
-      {error && (
-        <Paper 
-          elevation={3} 
-          sx={{ 
-            p: 2, 
-            mb: 2, 
-            bgcolor: '#ffebee', 
-            color: '#c62828',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}
-        >
-          <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{error}</Typography>
-          <Box>
-            <Button size="small" onClick={() => window.location.reload()} sx={{ mr: 1 }}>Refresh</Button>
-            <Button size="small" onClick={() => setError('')}>Dismiss</Button>
-          </Box>
-        </Paper>
-      )}
-      
+    <Container maxWidth="lg" className="chat-container">      
       <Paper elevation={3} className="chat-paper">
         <Box className="chat-wrapper">
           {/* Conversations List */}
@@ -520,7 +499,10 @@ function Chat() {
                       onClick={() => fetchMessages(conv.participantId, conv.username)}
                     >
                       <Box className="conversation-avatar">
-                        <Avatar alt={conv.username}>
+                        <Avatar 
+                          src={conv.profilePicture || '/icons/default-avatar.png'}
+                          alt={conv.username}
+                        >
                           {conv.username.charAt(0).toUpperCase()}
                         </Avatar>
                       </Box>
@@ -545,22 +527,7 @@ function Chat() {
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                     Start chatting with a chef to see conversations here
-                  </Typography>                  {username && currentUser && username !== currentUser.username && (
-                    <Button 
-                      variant="contained"
-                      color="primary"
-                      sx={{ mt: 2, bgcolor: '#F16A2D', '&:hover': { bgcolor: '#d45c26' } }}
-                      onClick={() => {
-                        // Set up active conversation with the user from URL param
-                        setActiveConversation({ username: username });
-                        if (isMobileView) {
-                          setShowConversations(false);
-                        }
-                      }}
-                    >
-                      Chat with {username}
-                    </Button>
-                  )}
+                  </Typography>
                 </Box>
               )}
             </Box>

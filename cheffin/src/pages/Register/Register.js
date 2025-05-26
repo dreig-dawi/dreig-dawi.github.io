@@ -139,68 +139,116 @@ function Register() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            p: 4
+            p: { xs: 2, sm: 4 }
           }}
-        >
-          <Container sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+        >          <Container
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+              mb: 2
+            }}
+          >
             <img
               src="/icons/orange-chef.png"
               alt="Chef Logo"
               className="register-logo"
-              style={{ width: '100px', marginBottom: '20px' }}
+              style={{ width: '80px', marginBottom: '10px' }}
             />
-            
-            <div> 
+
+            <div style={{ textAlign: 'center', width: '100%' }}>
               <Typography component="h1" variant="h5" gutterBottom>
                 Create a Cheffin Account
               </Typography>
-              
-              <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
+
+              <Tabs
+                value={activeTab}
+                onChange={handleTabChange}
+                sx={{ mb: 3 }}
+                variant="fullWidth"
+              >
                 <Tab label="Regular User" />
                 <Tab label="Chef" />
               </Tabs>
             </div>
           </Container>
-          
-          {error && <Alert severity="error" sx={{ width: '100%', mb: 2 }}>{error}</Alert>}
-          
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
+
+          {error && (
+            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{ mt: 1, width: '100%' }}
+          >
             {/* User information - common for both tabs */}
-            <Grid container spacing={2} sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Box sx={{ position: 'relative', display: 'block', mb: 2 }}>
-                    <Avatar 
-                      src={profilePreview} 
-                      sx={{ width: 100, height: 100 }}
-                    />
-                    <input
-                      accept="image/*"
-                      id="profile-picture-upload"
-                      type="file"
-                      hidden
-                      onChange={handleProfilePicture}
-                    />
-                    <label htmlFor="profile-picture-upload">
-                      <IconButton 
-                        component="span"
-                        sx={{ 
-                          position: 'absolute', 
-                          bottom: 0, 
-                          right: 0, 
-                          backgroundColor: '#F16A2D',
-                          color: 'white',
-                          '&:hover': { bgcolor: '#d45c26' }
-                        }}
-                      >
-                        <CloudUploadIcon />
-                      </IconButton>
-                    </label>
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                flexDirection: { xs: 'column', sm: 'row' }
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'relative',
+                  display: 'block',
+                  mb: 2,
+                  textAlign: 'center'
+                }}
+              >
+                <Avatar
+                  src={profilePreview}
+                  sx={{
+                    width: { xs: 80, sm: 100 },
+                    height: { xs: 80, sm: 100 },
+                    margin: '0 auto'
+                  }}
+                />
+                <input
+                  accept="image/*"
+                  id="profile-picture-upload"
+                  type="file"
+                  hidden
+                  onChange={handleProfilePicture}
+                />
+                <label htmlFor="profile-picture-upload">
+                  <IconButton
+                    component="span"
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: '50%',
+                      transform: 'translateX(50%)',
+                      backgroundColor: '#F16A2D',
+                      color: 'white',
+                      '&:hover': { bgcolor: '#d45c26' }
+                    }}
+                  >
+                    <CloudUploadIcon />
+                  </IconButton>
+                </label>
               </Box>
-            </Grid>
-            <Grid container spacing={2} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              
-              
-              <Container sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 2, gap: 2 }}>
-                <Grid item xs={12}>                  <TextField
+            </Grid>            <Grid
+              container
+              spacing={2}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <Grid container spacing={2} sx={{ mb: 2, maxWidth: '600px' }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
                     required
                     fullWidth
                     id="username"
@@ -212,8 +260,7 @@ function Register() {
                     inputProps={{ maxLength: 30 }}
                   />
                 </Grid>
-                
-                <Grid item xs={12}>                  
+                <Grid item xs={12} sm={6}>
                   <TextField
                     required
                     fullWidth
@@ -226,10 +273,10 @@ function Register() {
                     inputProps={{ maxLength: 100 }}
                   />
                 </Grid>
-              </Container>
-              
-              <Container sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 2, gap: 2 }}>
-                <Grid item xs={12} sm={6}>                  <TextField
+              </Grid>
+              <Grid container spacing={2} sx={{ mb: 2, maxWidth: '600px' }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
                     required
                     fullWidth
                     name="password"
@@ -242,8 +289,8 @@ function Register() {
                     inputProps={{ maxLength: 64 }}
                   />
                 </Grid>
-                
-                <Grid item xs={12} sm={6}>                  <TextField
+                <Grid item xs={12} sm={6}>
+                  <TextField
                     required
                     fullWidth
                     name="confirmPassword"
@@ -255,19 +302,36 @@ function Register() {
                     inputProps={{ maxLength: 64 }}
                   />
                 </Grid>
-              </Container>
-            </Grid>
-            
-            {/* Chef specific fields */}
+              </Grid>
+            </Grid>            {/* Chef specific fields */}
             {isChef && (
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="h6" gutterBottom>
+              <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Typography variant="h6" gutterBottom align="center">
                   Chef Profile
                 </Typography>
-                
-                <Grid container spacing={2} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <Container sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 2, gap: 2 }}> 
-                    <Grid item xs={12}>                      <TextField
+
+                <Grid
+                  container
+                  spacing={2}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    maxWidth: '600px'
+                  }}
+                >                  <Grid container spacing={2} 
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 2,
+                      width: '100%',
+                      maxWidth: '600px'
+                    }}
+                  ><Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+                      <TextField
                         required
                         fullWidth
                         id="specialty"
@@ -278,12 +342,12 @@ function Register() {
                         onChange={handleChefChange}
                         inputProps={{ maxLength: 50 }}
                         sx={{
-                          maxWidth: '200px',
+                          width: '100%'
                         }}
                       />
                     </Grid>
-                    
-                    <Grid item xs={12}>                      
+
+                    <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
                       <TextField
                         required
                         fullWidth
@@ -295,13 +359,10 @@ function Register() {
                         value={chefFormData.experience}
                         onChange={handleChefChange}
                         sx={{
-                          minWidth: '200px',
+                          width: '100%'
                         }}
-                      />
-                    </Grid>
-                  </Container>
-
-                  <Grid item xs={12}>
+                      />                    </Grid>
+                  </Grid>                  <Grid item xs={12} sx={{ width: '100%', maxWidth: '600px' }}>
                     <TextField
                       required
                       fullWidth
@@ -314,26 +375,36 @@ function Register() {
                       value={chefFormData.bio}
                       onChange={handleChefChange}
                       inputProps={{ maxLength: 500 }}
+                      sx={{ width: '100%' }}
                     />
                   </Grid>
                 </Grid>
               </Box>
-            )}
-            
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2, bgcolor: '#F16A2D', '&:hover': { bgcolor: '#d45c26' } }}
-              disabled={loading}
-            >
-              {loading ? 'Creating Account...' : 'Sign Up'}
-            </Button>
-            
+            )}            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <Button
+                type="submit"
+                variant="contained"
+                sx={{
+                  mt: 3,
+                  mb: 2,
+                  bgcolor: '#F16A2D',
+                  '&:hover': { bgcolor: '#d45c26' },
+                  width: '100%',
+                  maxWidth: '400px'
+                }}
+                disabled={loading}
+              >
+                {loading ? 'Creating Account...' : 'Sign Up'}
+              </Button>
+            </Box>
+
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
               <Typography variant="body2">
                 Already have an account?{' '}
-                <Link to="/login" style={{ color: '#F16A2D', textDecoration: 'none' }}>
+                <Link
+                  to="/login"
+                  style={{ color: '#F16A2D', textDecoration: 'none' }}
+                >
                   Sign In
                 </Link>
               </Typography>
