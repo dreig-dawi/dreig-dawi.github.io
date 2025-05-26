@@ -56,20 +56,27 @@ function ChefProfile() {
     // Fetch chef profile data
     const fetchChefData = async () => {
       try {
-        const response = await axios.get(`${endpoint}/users/chef/${username}`);
-        setChefData(response.data);
-          // Set edit form data for the current chef
+        const response = await axios.get(`${endpoint}/users/chef/${username}`);        const chefData = response.data;
+        
+        // Convert profile picture to data URL if it's base64
+        if (chefData.profilePicture && !chefData.profilePicture.startsWith('data:')) {
+          chefData.profilePicture = `data:image/jpeg;base64,${chefData.profilePicture}`;
+        }
+        
+        setChefData(chefData);
+          
+        // Set edit form data for the current chef
         if (isCurrentChef) {
           setEditProfileData({
-            bio: response.data.bio || '',
-            specialty: response.data.specialty || '',
-            experience: response.data.experience || '',
-            profilePicture: response.data.profilePicture || ''
+            bio: chefData.bio || '',
+            specialty: chefData.specialty || '',
+            experience: chefData.experience || '',
+            profilePicture: chefData.profilePicture || ''
           });
           
           // Initialize profile image preview if exists
-          if (response.data.profilePicture) {
-            setProfileImagePreview(response.data.profilePicture);
+          if (chefData.profilePicture) {
+            setProfileImagePreview(chefData.profilePicture);
           }
         }
         
@@ -279,50 +286,53 @@ function ChefProfile() {
     }
   };  const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    
-    setIsUpdatingProfile(true); // Start loading
-    
+    setIsUpdatingProfile(true);
+
     try {
-      // Create update data with only the fields we want to update
+      let profilePicture = editProfileData.profilePicture || chefData.profilePicture || null;
+
+      // If the profile picture is a data URL, extract just the base64 data
+      if (profilePicture?.startsWith('data:')) {
+        profilePicture = profilePicture.split(',')[1];
+      }
+
+      // Create update data preserving existing data
       const updateData = {
         username: chefData.username,
         email: chefData.email,
-        profilePicture: editProfileData.profilePicture,
-        // Only include chef-specific fields if user is a chef
+        profilePicture: profilePicture,
         ...(isChef() ? {
           bio: editProfileData.bio,
           specialty: editProfileData.specialty,
           experience: editProfileData.experience ? parseInt(editProfileData.experience, 10) : null
         } : {})
       };
-      
+
       await updateProfile(updateData);
       
-      // Update local chef data based on user type
+      // Update local chef data
       setChefData(prevData => ({
         ...prevData,
         ...(isChef() ? {
           bio: editProfileData.bio,
           specialty: editProfileData.specialty,
           experience: editProfileData.experience,
-        } : {}),        profilePicture: editProfileData.profilePicture
+        } : {}),
+        profilePicture: editProfileData.profilePicture || prevData.profilePicture
       }));
 
-      // Update the profile preview with the full data URL if present
-      if (editProfileData.profilePicture && editProfileData.profilePicture.startsWith('data:')) {
+      if (editProfileData.profilePicture) {
         setProfileImagePreview(editProfileData.profilePicture);
-      } else if (editProfileData.profilePicture) {
-        // If it's just base64, reconstruct the data URL
-        setProfileImagePreview(`data:image/png;base64,${editProfileData.profilePicture}`);
       }
-      
-      handleCloseEditDialog();    } catch (error) {
+
+      handleCloseEditDialog();
+    } catch (error) {
       console.error('Error updating profile:', error);
       console.error('Error details:', error.response?.data || error.message);
       const errorMessage = error.response?.data?.message || error.message || 'Failed to update profile';
       alert(`Failed to update profile: ${errorMessage}`);
     } finally {
-      setIsUpdatingProfile(false); // End loading
+      setIsUpdatingProfile(false);
     }
   };
   
@@ -425,7 +435,7 @@ function ChefProfile() {
             {isCurrentUser ? (
               <Box className="profile-picture-upload">
                 <Avatar
-                  src={chefData.profilePicture || '/icons/orange-chef.png'}
+                  src={chefData.profilePicture || "/icons/orange-chef.png"}
                   sx={{
                     width: 150,
                     height: 150,
@@ -434,13 +444,13 @@ function ChefProfile() {
                     backgroundColor: 'white',
                   }}
                 />
-                <Box 
+                {/* <Box 
                   component="label" 
                   className="profile-picture-overlay"
                   htmlFor="banner-profile-picture-upload"
                 >
                   <EditIcon className="profile-picture-icon" />
-                </Box>
+                </Box> */}
                 <input
                   id="banner-profile-picture-upload"
                   type="file"
@@ -1048,15 +1058,13 @@ function ChefProfile() {
             <Box component="form" sx={{ mt: 2 }}>              {/* Profile Picture Upload */}
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3, mt: 1 }}>
                 <Box className="profile-picture-upload">
-                  <Avatar
-                    src={profileImagePreview || chefData.profilePicture || '/icons/orange-chef.png'}
-                    sx={{
-                      width: 100,
-                      height: 100,
-                      mb: 2,
-                      border: '3px solid #F16A2D',
-                      boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
-                      backgroundColor: 'white',
+                  <Avatar                  src={profileImagePreview || chefData.profilePicture || '/icons/orange-chef.png'}
+                  sx={{
+                    width: 150,
+                    height: 150,
+                    border: '4px solid white',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                    backgroundColor: 'white',
                     }}
                   />
                   <Box 

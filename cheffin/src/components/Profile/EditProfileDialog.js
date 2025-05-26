@@ -65,16 +65,22 @@ function EditProfileDialog({ open, onClose, userData, onProfileUpdate }) {
     e.preventDefault();
     setIsUpdatingProfile(true);
 
-    try {
-      // Create update data including the full data URL for profile picture
+    try {      // Create update data including the base64 image data
+      let profilePicture = editProfileData.profilePicture;
+      
+      // If it's a data URL, extract just the base64 part
+      if (profilePicture?.startsWith('data:')) {
+        profilePicture = profilePicture.split(',')[1];
+      }
+
       const updateData = {
         ...(userData.isChef && {
           specialty: editProfileData.specialty || '',
           bio: editProfileData.bio || '',
           experience: editProfileData.experience ? parseInt(editProfileData.experience, 10) : null
         }),
-        // Send the full data URL, just like in Register.js
-        profilePicture: editProfileData.profilePicture
+        // Send just the base64 data for profile picture
+        profilePicture: profilePicture
       };
 
       const token = localStorage.getItem('authToken');
@@ -108,8 +114,7 @@ function EditProfileDialog({ open, onClose, userData, onProfileUpdate }) {
           {/* Profile Picture Upload */}
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3, mt: 1 }}>
             <Box className="profile-picture-upload">
-              <Avatar
-                src={profileImagePreview || userData?.profilePicture || '/icons/orange-chef.png'}
+              <Avatar                src={profileImagePreview || userData?.profilePicture || '/icons/orange-chef.png'}
                 sx={{
                   width: 100,
                   height: 100,
