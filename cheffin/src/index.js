@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { HashRouter, Route, Routes } from "react-router-dom";
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -24,7 +24,7 @@ const WithLayout = ({ component: Component }) => (
 export default function Router() {
     return (
         <AuthProvider>
-            <BrowserRouter>
+            <HashRouter>
                 <Routes>
                     <Route path="/" element={<App />} />
                     <Route path="/home" element={<WithLayout component={Home} />} />
@@ -38,7 +38,7 @@ export default function Router() {
                     {/* NotFound route must be last */}
                     <Route path="*" element={<WithLayout component={NotFound} />} />
                 </Routes>
-            </BrowserRouter>
+            </HashRouter>
         </AuthProvider>
     )
 }
