@@ -633,23 +633,44 @@ function Chat() {
           {/* Chat Area */}
           {(!isMobileView || !showConversations) && activeConversation && (
             <Box className="chat-messages-container">
-              {/* Chat Header */}
-              <Box className="chat-header">
+              {/* Chat Header */}              <Box className="chat-header">
                 {isMobileView && (
                   <IconButton onClick={goBackToConversations} sx={{ mr: 1 }}>
                     <ArrowBackIcon />
                   </IconButton>
-                )}                  <Avatar 
-                  src={recipient?.profilePicture ? `data:image/jpeg;base64,${recipient.profilePicture}` : '/icons/default-avatar.png'} 
-                  alt={activeConversation.username}
-                  sx={{ width: 40, height: 40, mr: 2 }}
+                )}
+                <Box 
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    cursor: recipient?.role === 'CHEF' ? 'pointer' : 'default',
+                    '&:hover': recipient?.role === 'CHEF' ? {
+                      opacity: 0.8
+                    } : {}
+                  }}
+                  onClick={() => {
+                    if (recipient?.role === 'CHEF') {
+                      navigate(`/chef/${activeConversation.username}`);
+                    }
+                  }}
                 >
-                  {activeConversation.username.charAt(0).toUpperCase()}
-                </Avatar>
-                
-                <Typography variant="h6">
-                  {activeConversation.username}
-                </Typography>
+                  <Avatar 
+                    src={recipient?.profilePicture ? `data:image/jpeg;base64,${recipient.profilePicture}` : '/icons/default-avatar.png'} 
+                    alt={activeConversation.username}
+                    sx={{ width: 40, height: 40, mr: 2 }}
+                  >
+                    {activeConversation.username.charAt(0).toUpperCase()}
+                  </Avatar>
+                  
+                  <Typography variant="h6">
+                    {activeConversation.username}
+                    {recipient?.role === 'CHEF' && (
+                      <Typography variant="caption" sx={{ display: 'block', color: '#F16A2D' }}>
+                        Chef • Click to view profile
+                      </Typography>
+                    )}
+                  </Typography>
+                </Box>
               </Box>
               
               <Divider />
