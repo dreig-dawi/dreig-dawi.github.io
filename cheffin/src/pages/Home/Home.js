@@ -24,8 +24,11 @@ function Home() {
   const [posts, setPosts] = useState([]);
   const [randomPosts, setRandomPosts] = useState([]);
   const [chefs, setChefs] = useState([]);
+  const [expandedPosts, setExpandedPosts] = useState({});
+  const [chefProfiles, setChefProfiles] = useState({});
   const [searchTerm, setSearchTerm] = useState('');  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);  const [pageSize] = useState(9);
+  const [totalPages, setTotalPages] = useState(0);  
+  const [pageSize] = useState(9);
   const { isAuthenticated, currentUser } = useAuth();
   const navigate = useNavigate();
     // Define fetchRandomData first using useCallback so it can be referenced in useEffect
@@ -43,7 +46,28 @@ function Home() {
       const shuffledPosts = postResponse.data
         .sort(() => 0.5 - Math.random())
         .slice(0, 9);
-      setRandomPosts(shuffledPosts);
+
+      // Fetch chef profiles for all random posts
+      const uniqueUsernames = [...new Set(shuffledPosts.map(post => post.username))];
+      const chefProfilesData = await Promise.all(
+        uniqueUsernames.map(async username => {
+          const response = await axios.get(`${endpoint}/users/chef/${username}`);
+          return { username, profile: response.data };
+        })
+      );
+
+      // Create a map of username to profile data
+      const profileMap = Object.fromEntries(
+        chefProfilesData.map(({ username, profile }) => [username, profile])
+      );
+
+      // Add chef profiles to random posts
+      const postsWithProfiles = shuffledPosts.map(post => ({
+        ...post,
+        chefProfile: profileMap[post.username]
+      }));
+      
+      setRandomPosts(postsWithProfiles);
       
       // Fetch featured chefs
       const chefsResponse = await axios.get(`${endpoint}/users/chefs/featured`);
@@ -58,6 +82,20 @@ function Home() {
     }
   }, [pageSize]);
   
+  const fetchChefProfile = useCallback(async (username) => {
+    try {
+      const response = await axios.get(`${endpoint}/users/chef/${username}`);
+      setChefProfiles(prev => ({
+        ...prev,
+        [username]: response.data
+      }));
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching chef profile:', error);
+      return null;
+    }
+  }, []);
+
   // Define fetchAllPosts using useCallback so it can be referenced in useEffect
   const fetchAllPosts = useCallback(async () => {
     try {
@@ -67,13 +105,33 @@ function Home() {
       const postResponse = await axios.get(`${endpoint}/post`);
       const allPosts = postResponse.data;
       
+      // Fetch chef profiles for all unique usernames
+      const uniqueUsernames = [...new Set(allPosts.map(post => post.username))];
+      const chefProfilesData = await Promise.all(
+        uniqueUsernames.map(async username => {
+          const profile = await fetchChefProfile(username);
+          return { username, profile };
+        })
+      );
+
+      // Create a map of username to profile data
+      const profileMap = Object.fromEntries(
+        chefProfilesData.map(({ username, profile }) => [username, profile])
+      );
+
+      // Add profile pictures to posts
+      const postsWithProfiles = allPosts.map(post => ({
+        ...post,
+        chefProfile: profileMap[post.username]
+      }));
+      
       const filteredPosts = searchTerm 
-        ? allPosts.filter(post => 
+        ? postsWithProfiles.filter(post => 
             post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             post.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             post.username?.toLowerCase().includes(searchTerm.toLowerCase())
           )
-        : allPosts;
+        : postsWithProfiles;
       
       // Calculate total pages based on filtered results
       const calculatedTotalPages = Math.ceil(filteredPosts.length / pageSize);
@@ -90,7 +148,7 @@ function Home() {
       console.error('Error fetching all posts:', error);
       setLoading(false);
     }
-  }, [searchTerm, page, pageSize]);
+  }, [searchTerm, page, pageSize, fetchChefProfile]);
   useEffect(() => {
     // Fetch random posts and chefs on initial load
     fetchRandomData();
@@ -547,11 +605,17 @@ function Home() {
                                   style={{ width: '40%', opacity: 0.4 }}
                                 />
                               </Box>
-                            )}
-                            <Chip
+                            )}                            <Chip
                               label={post.username}
                               size="medium"
-                              avatar={<Avatar sx={{ bgcolor: '#F16A2D' }}>{post.username[0].toUpperCase()}</Avatar>}
+                              avatar={
+                                <Avatar 
+                                  src={post.chefProfile?.profilePicture ? `data:image/jpeg;base64,${post.chefProfile.profilePicture}` : "icons/orange-chef.png"}
+                                  sx={{ bgcolor: '#F16A2D' }}
+                                >
+                                  {post.username[0].toUpperCase()}
+                                </Avatar>
+                              }
                               onClick={() => handleChefProfile(post.username)}
                               sx={{
                                 position: 'absolute',
@@ -573,13 +637,16 @@ function Home() {
                             >
                               {post.title}
                             </Typography>
-                            <Typography 
-                              variant="body2" 
+                            <Typography                              variant="body2" 
                               color="text.secondary" 
                               paragraph
-                              sx={{ mb: 'auto', flexGrow: 1 }}
+                              sx={{ 
+                                mb: 'auto', 
+                                flexGrow: 1,
+                                transition: 'all 0.3s ease'
+                              }}
                             >
-                              {post.description && post.description.length > 120
+                              {post.description && !expandedPosts[post.id] && post.description.length > 120
                                 ? `${post.description.substring(0, 120)}...`
                                 : post.description}
                             </Typography>
@@ -588,14 +655,13 @@ function Home() {
                               <Button 
                                 size="small"
                                 variant="text"
-                                onClick={() => handleChefProfile(post.username)}
+                                onClick={() => setExpandedPosts(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
                                 sx={{ 
                                   color: '#F16A2D',
                                   fontWeight: 500,
                                   '&:hover': { bgcolor: 'rgba(241, 106, 45, 0.08)' }
-                                }}
-                              >
-                                View Details
+                                }}                              >
+                                {expandedPosts[post.id] ? 'Show Less' : 'View Details'}
                               </Button>
                               <Typography 
                                 variant="caption" 

@@ -49,8 +49,7 @@ function ChefProfile() {
   useEffect(() => {
     // Determine if the profile being viewed belongs to the current user
     if (isAuthenticated() && currentUser) {
-      setIsCurrentChef(currentUser.username === username && isChef());
-      setIsCurrentUser(currentUser.username === username);
+      setIsCurrentChef(currentUser.username === username);
     }
     
     // Fetch chef profile data
@@ -301,11 +300,9 @@ function ChefProfile() {
         username: chefData.username,
         email: chefData.email,
         profilePicture: profilePicture,
-        ...(isChef() ? {
-          bio: editProfileData.bio,
-          specialty: editProfileData.specialty,
-          experience: editProfileData.experience ? parseInt(editProfileData.experience, 10) : null
-        } : {})
+        bio: editProfileData.bio,
+        specialty: editProfileData.specialty,
+        experience: editProfileData.experience ? parseInt(editProfileData.experience, 10) : null
       };
 
       await updateProfile(updateData);
@@ -313,11 +310,9 @@ function ChefProfile() {
       // Update local chef data
       setChefData(prevData => ({
         ...prevData,
-        ...(isChef() ? {
-          bio: editProfileData.bio,
-          specialty: editProfileData.specialty,
-          experience: editProfileData.experience,
-        } : {}),
+        bio: editProfileData.bio,
+        specialty: editProfileData.specialty,
+        experience: editProfileData.experience,
         profilePicture: editProfileData.profilePicture || prevData.profilePicture
       }));
 
@@ -519,7 +514,7 @@ function ChefProfile() {
             </Box>
           </Box>
         </Box>        {/* Chef Bio - Only displayed for chef profiles */}        
-        {isChef() && (
+        {(
           <Box className="chef-bio" sx={{
             my: 4,
             bgcolor: 'white',
@@ -565,7 +560,7 @@ function ChefProfile() {
             )}
           </Box>
         )}        {/* Content Tabs - Only displayed for chef profiles */}      
-        {isChef() && (
+        {(
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
@@ -623,7 +618,7 @@ function ChefProfile() {
             </Button>
           </Box>
         )}        {/* Content Display - Only shown for chef profiles */}
-        {isChef() && (
+        {(
           <Box role="tabpanel">
             <Grid container spacing={3} sx={{ width: '100%', maxWidth: '1400px', mx: 'auto', justifyContent: 'center' }}>{posts.length > 0 ? (
               posts.map(post => (
@@ -1088,7 +1083,7 @@ function ChefProfile() {
               </Box>
               
               {/* Chef-specific fields - only shown to chef users */}
-              {isChef() && (
+              {(
                 <>
                   <TextField
                     fullWidth
