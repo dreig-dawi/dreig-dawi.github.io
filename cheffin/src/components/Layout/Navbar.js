@@ -104,7 +104,7 @@ function Navbar() {
         {isAuthenticated() ? (
           <Box className="drawer-header">
             <Avatar 
-              src={currentUser?.profilePicture} 
+              src={currentUser?.profilePicture ? `data:image/jpeg;base64,${currentUser.profilePicture}` : undefined} 
               alt={currentUser?.username}
               sx={{ width: 60, height: 60, mb: 1 }}
             >
@@ -253,9 +253,8 @@ function Navbar() {
                     onClick={handleProfileMenuOpen}
                     color="inherit"
                     sx={{ ml: 1 }}
-                  >
-                    <Avatar 
-                      src={currentUser?.profilePicture} 
+                  >                    <Avatar 
+                      src={currentUser?.profilePicture ? `data:image/jpeg;base64,${currentUser.profilePicture}` : undefined}
                       alt={currentUser?.username}
                       sx={{ width: 32, height: 32 }}
                     >
