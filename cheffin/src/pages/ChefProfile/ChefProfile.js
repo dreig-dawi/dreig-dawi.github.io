@@ -720,8 +720,7 @@ function ChefProfile() {
                       <Typography variant="h6" gutterBottom sx={{
                         color: '#F16A2D',
                         fontWeight: 500
-                      }}>{post.title}</Typography>
-                      <Typography 
+                      }}>{post.title}</Typography>                      <Typography 
                         variant="body2" 
                         color="text.secondary" 
                         paragraph
@@ -739,22 +738,24 @@ function ChefProfile() {
                       </Typography>
                       
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
-                        <Button 
-                          size="small"
-                          variant="text"
-                          onClick={() => setExpandedPosts(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
-                          sx={{ 
-                            color: '#F16A2D',
-                            fontWeight: 500,
-                            '&:hover': { bgcolor: 'rgba(241, 106, 45, 0.08)' }
+                        {post.description && post.description.length > 120 && (
+                          <Button 
+                            size="small"
+                            variant="text"
+                            onClick={() => setExpandedPosts(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
+                            sx={{ 
+                              color: '#F16A2D',
+                              fontWeight: 500,                            '&:hover': { bgcolor: 'rgba(241, 106, 45, 0.08)' }
                           }}
                         >
                           {expandedPosts[post.id] ? 'Show Less' : 'View Details'}
                         </Button>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        )}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
                           <Typography 
                             variant="caption" 
                             color="text.secondary"
+                            sx={{ ml: post.description?.length <= 120 ? 'auto' : 0 }}
                           >
                             {new Date(post.createdAt).toLocaleDateString()}
                           </Typography>
