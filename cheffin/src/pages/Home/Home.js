@@ -650,23 +650,28 @@ function Home() {
                                 ? `${post.description.substring(0, 120)}...`
                                 : post.description}
                             </Typography>
-                            <Divider sx={{ my: 2 }} />
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Button 
-                                size="small"
-                                variant="text"
-                                onClick={() => setExpandedPosts(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
-                                sx={{ 
-                                  color: '#F16A2D',
-                                  fontWeight: 500,
-                                  '&:hover': { bgcolor: 'rgba(241, 106, 45, 0.08)' }
-                                }}                              >
-                                {expandedPosts[post.id] ? 'Show Less' : 'View Details'}
-                              </Button>
+                            <Divider sx={{ my: 2 }} />                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              {post.description && post.description.length > 120 && (
+                                <Button 
+                                  size="small"
+                                  variant="text"
+                                  onClick={() => setExpandedPosts(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
+                                  sx={{ 
+                                    color: '#F16A2D',
+                                    fontWeight: 500,
+                                    '&:hover': { bgcolor: 'rgba(241, 106, 45, 0.08)' }
+                                  }}                              >
+                                  {expandedPosts[post.id] ? 'Show Less' : 'View Details'}
+                                </Button>
+                              )}
                               <Typography 
                                 variant="caption" 
                                 color="text.secondary"
-                                sx={{ display: 'flex', alignItems: 'center' }}
+                                sx={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center',
+                                  ml: post.description?.length <= 120 ? 'auto' : 0 
+                                }}
                               >
                                 {new Date(post.createdAt).toLocaleDateString()}
                               </Typography>
