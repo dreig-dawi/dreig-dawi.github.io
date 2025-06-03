@@ -211,22 +211,6 @@ function App() {
                 <li><Button onClick={() => navigate('/login')}>Login</Button></li>
               </ul>
             </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" gutterBottom className="footer-title">
-                Connect With Us
-              </Typography>
-              <Box className="social-icons">
-                <IconButton aria-label="facebook" className="social-icon">
-                  <img src="/icons/facebook.svg" alt="Facebook" width="24" height="24" />
-                </IconButton>
-                <IconButton aria-label="twitter" className="social-icon">
-                  <img src="/icons/twitter.svg" alt="Twitter" width="24" height="24" />
-                </IconButton>
-                <IconButton aria-label="instagram" className="social-icon">
-                  <img src="/icons/instagram.svg" alt="Instagram" width="24" height="24" />
-                </IconButton>
-              </Box>
-            </Grid>
           </Grid>
           <Box className="copyright" sx={{ mt: 4, pt: 2, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
             <Typography variant="body2" align="center">

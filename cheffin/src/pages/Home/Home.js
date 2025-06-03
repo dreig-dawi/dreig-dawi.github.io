@@ -7,7 +7,7 @@ import {
   Container, Grid, Card, CardMedia, CardContent, 
   Typography, Button, Box, CircularProgress,
   TextField, InputAdornment, Avatar, Chip,
-  Paper, Divider, IconButton, Fade, Zoom, Pagination
+  Paper, Divider, IconButton, Fade, Zoom
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import MessageIcon from '@mui/icons-material/Message';
@@ -21,34 +21,31 @@ import './Home.css';
 function Home() {
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [posts, setPosts] = useState([]);
-  const [randomPosts, setRandomPosts] = useState([]);
+  const [allPosts, setAllPosts] = useState([]);
+  const [displayedPosts, setDisplayedPosts] = useState([]);
   const [chefs, setChefs] = useState([]);
   const [expandedPosts, setExpandedPosts] = useState({});
   const [chefProfiles, setChefProfiles] = useState({});
-  const [searchTerm, setSearchTerm] = useState('');  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);  
+  const [searchTerm, setSearchTerm] = useState('');
   const [pageSize] = useState(9);
+  const [hasMore, setHasMore] = useState(true);
   const { isAuthenticated, currentUser } = useAuth();
   const navigate = useNavigate();
-    // Define fetchRandomData first using useCallback so it can be referenced in useEffect
-  const fetchRandomData = useCallback(async () => {
+
+  // Fetch all posts initially
+  const fetchInitialData = useCallback(async () => {
     try {
       setInitialLoading(true);
-      // Fetch all posts
       const postResponse = await axios.get(`${endpoint}/post`);
+      setAllPosts(postResponse.data);
       
-      // Calculate total pages for all posts (for pagination)
-      const calculatedTotalPages = Math.ceil(postResponse.data.length / pageSize);
-      setTotalPages(calculatedTotalPages);
-      
-      // Shuffle posts array and take first 9 items for random display
-      const shuffledPosts = postResponse.data
+      // Get initial posts
+      const initialPosts = postResponse.data
         .sort(() => 0.5 - Math.random())
-        .slice(0, 9);
+        .slice(0, pageSize);
 
-      // Fetch chef profiles for all random posts
-      const uniqueUsernames = [...new Set(shuffledPosts.map(post => post.username))];
+      // Fetch chef profiles for displayed posts
+      const uniqueUsernames = [...new Set(initialPosts.map(post => post.username))];
       const chefProfilesData = await Promise.all(
         uniqueUsernames.map(async username => {
           const response = await axios.get(`${endpoint}/users/chef/${username}`);
@@ -61,14 +58,15 @@ function Home() {
         chefProfilesData.map(({ username, profile }) => [username, profile])
       );
 
-      // Add chef profiles to random posts
-      const postsWithProfiles = shuffledPosts.map(post => ({
+      // Add chef profiles to posts
+      const postsWithProfiles = initialPosts.map(post => ({
         ...post,
         chefProfile: profileMap[post.username]
       }));
       
-      setRandomPosts(postsWithProfiles);
-      
+      setDisplayedPosts(postsWithProfiles);
+      setHasMore(postResponse.data.length > pageSize);
+
       // Fetch featured chefs
       const chefsResponse = await axios.get(`${endpoint}/users/chefs/featured`);
       setChefs(chefsResponse.data);
@@ -76,41 +74,37 @@ function Home() {
       setInitialLoading(false);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching random data:', error);
+      console.error('Error fetching initial data:', error);
       setInitialLoading(false);
       setLoading(false);
     }
   }, [pageSize]);
-  
-  const fetchChefProfile = useCallback(async (username) => {
-    try {
-      const response = await axios.get(`${endpoint}/users/chef/${username}`);
-      setChefProfiles(prev => ({
-        ...prev,
-        [username]: response.data
-      }));
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching chef profile:', error);
-      return null;
-    }
-  }, []);
 
-  // Define fetchAllPosts using useCallback so it can be referenced in useEffect
-  const fetchAllPosts = useCallback(async () => {
+  const loadMorePosts = useCallback(async () => {
+    if (loading) return;
+    
+    setLoading(true);
+    const currentLength = displayedPosts.length;
+    
     try {
-      setLoading(true);
+      // Filter posts if there's a search term
+      const filteredPosts = searchTerm
+        ? allPosts.filter(post =>
+            post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            post.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            post.username?.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+        : allPosts;
+
+      // Get next set of posts
+      const nextPosts = filteredPosts.slice(currentLength, currentLength + pageSize);
       
-      // Fetch all posts for search and implement client-side pagination
-      const postResponse = await axios.get(`${endpoint}/post`);
-      const allPosts = postResponse.data;
-      
-      // Fetch chef profiles for all unique usernames
-      const uniqueUsernames = [...new Set(allPosts.map(post => post.username))];
+      // Fetch chef profiles for new posts
+      const uniqueUsernames = [...new Set(nextPosts.map(post => post.username))];
       const chefProfilesData = await Promise.all(
         uniqueUsernames.map(async username => {
-          const profile = await fetchChefProfile(username);
-          return { username, profile };
+          const response = await axios.get(`${endpoint}/users/chef/${username}`);
+          return { username, profile: response.data };
         })
       );
 
@@ -119,71 +113,39 @@ function Home() {
         chefProfilesData.map(({ username, profile }) => [username, profile])
       );
 
-      // Add profile pictures to posts
-      const postsWithProfiles = allPosts.map(post => ({
+      // Add chef profiles to posts
+      const postsWithProfiles = nextPosts.map(post => ({
         ...post,
         chefProfile: profileMap[post.username]
       }));
       
-      const filteredPosts = searchTerm 
-        ? postsWithProfiles.filter(post => 
-            post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            post.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            post.username?.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        : postsWithProfiles;
+      // Add new posts to displayed posts
+      setDisplayedPosts(prev => [...prev, ...postsWithProfiles]);
       
-      // Calculate total pages based on filtered results
-      const calculatedTotalPages = Math.ceil(filteredPosts.length / pageSize);
-      setTotalPages(calculatedTotalPages);
-      
-      // Get current page subset
-      const startIndex = page * pageSize;
-      const endIndex = startIndex + pageSize;
-      const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
-      
-      setPosts(paginatedPosts);
-      setLoading(false);
+      // Update hasMore flag
+      setHasMore(currentLength + pageSize < filteredPosts.length);
     } catch (error) {
-      console.error('Error fetching all posts:', error);
+      console.error('Error loading more posts:', error);
+    } finally {
       setLoading(false);
     }
-  }, [searchTerm, page, pageSize, fetchChefProfile]);
-  useEffect(() => {
-    // Fetch random posts and chefs on initial load
-    fetchRandomData();
-    
-    // Scroll to top when component mounts
-    window.scrollTo(0, 0);
-  }, [fetchRandomData]);  // Fetch posts when search term changes or page changes
-  useEffect(() => {
-    if (!initialLoading) {
-      // Only apply delay for search term changes, not for pagination
-      const delay = searchTerm ? 500 : 0;
-      
-      const delayDebounceFn = setTimeout(() => {
-        // Always fetch all posts when paginating or searching
-        fetchAllPosts();
-      }, delay);
-      
-      return () => clearTimeout(delayDebounceFn);
-    }
-  }, [searchTerm, initialLoading, page, fetchAllPosts]);
-  
+  }, [allPosts, displayedPosts.length, loading, pageSize, searchTerm]);
+
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    setPage(0); // Reset to first page when search term changes
+    const searchValue = e.target.value;
+    setSearchTerm(searchValue);
+    
+    // Filter and reset posts when searching
+    const filteredPosts = allPosts.filter(post =>
+      post.title?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      post.description?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      post.username?.toLowerCase().includes(searchValue.toLowerCase())
+    );
+    
+    setDisplayedPosts(filteredPosts.slice(0, pageSize));
+    setHasMore(filteredPosts.length > pageSize);
   };
-  const handlePageChange = (event, newPage) => {
-    if (event) {
-      event.preventDefault(); // Prevent default page reload
-      event.stopPropagation(); // Prevent event bubbling
-    }
-    setPage(newPage - 1); // MaterialUI Pagination is 1-indexed, but our logic is 0-indexed
-  };
-    // Display posts based on whether we're searching or not
-  const displayPosts = searchTerm ? posts : (page > 0 ? posts : randomPosts);
-  
+
   const handleChefProfile = (username) => {
     navigate(`/chef/${username}`);
   };
@@ -200,14 +162,20 @@ function Home() {
       navigate('/login');
     }
   };
-    if (initialLoading) {
+
+  useEffect(() => {
+    fetchInitialData();
+    window.scrollTo(0, 0);
+  }, [fetchInitialData]);
+  
+  if (initialLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <CircularProgress sx={{ color: '#F16A2D' }} />
       </Box>
     );
   }
-  
+
   return (
     <Box className="Home" sx={{ backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
       {/* Hero Banner with Background Image */}
@@ -523,8 +491,8 @@ function Home() {
             <>
               {/* Posts grid */}
               <Grid container spacing={2} sx={{ width: '100%', maxWidth: '1600px', mx: 'auto', justifyContent: 'center' }}>
-                {displayPosts?.length > 0 ? (
-                  displayPosts.map((post, index) => (
+                {displayedPosts?.length > 0 ? (
+                  displayedPosts.map((post, index) => (
                     <Grid item xs={12} md={6} lg={6} key={post.id}>
                       <Fade in={true} timeout={1000} style={{ transitionDelay: `${150 * index}ms` }}>
                         <Card 
@@ -705,38 +673,28 @@ function Home() {
                     )}
                   </Box>
                 )}
-              </Grid>                {/* Pagination - Always visible when there are pages */}
-              {totalPages > 0 && (                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }} 
-                    onClick={(e) => e.preventDefault()}>
-                  <Pagination 
-                    count={totalPages} 
-                    page={page + 1} 
-                    onChange={handlePageChange}
-                    onClick={(e) => e.preventDefault()}
-                    color="primary"
-                    size="large"
-                    showFirstButton 
-                    showLastButton
-                    sx={{
-                      '& .MuiPaginationItem-root': {
-                        color: '#666',
-                        cursor: 'pointer',
-                        '&.Mui-selected': {
-                          backgroundColor: '#F16A2D',
-                          color: 'white',
-                          '&:hover': {
-                            backgroundColor: '#d45c26',
-                          }
-                        },
-                        '&:hover': {
-                          backgroundColor: 'rgba(241, 106, 45, 0.1)',
-                        },
-                      },
-                      '& button': {
-                        pointerEvents: 'auto', // Ensure buttons respond to events
-                      }
+              </Grid>                {/* Load More button - Always visible when there are more posts */}
+              {hasMore && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                  <Button
+                    variant="contained"
+                    onClick={loadMorePosts}
+                    disabled={loading}
+                    sx={{ 
+                      bgcolor: '#F16A2D', 
+                      '&:hover': { bgcolor: '#d45c26' },
+                      px: 4,
+                      py: 1.5,
+                      fontSize: '1rem',
+                      borderRadius: '30px',
+                      textTransform: 'none',
+                      boxShadow: '0 4px 12px rgba(241, 106, 45, 0.5)',
+                      position: 'relative',
+                      zIndex: 2
                     }}
-                  />
+                  >
+                    {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Load More'}
+                  </Button>
                 </Box>
               )}
             </>

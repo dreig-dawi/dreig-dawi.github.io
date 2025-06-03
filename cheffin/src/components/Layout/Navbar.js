@@ -96,10 +96,11 @@ function Navbar() {
       anchor="left"
       open={mobileMenuOpen}
       onClose={toggleMobileMenu}
-    >
-      <Box
+    >      <Box
         sx={{ width: 250 }}
         role="presentation"
+        onClick={toggleMobileMenu}
+        onKeyDown={toggleMobileMenu}
       >
         {isAuthenticated() ? (
           <Box className="drawer-header">
@@ -133,50 +134,62 @@ function Navbar() {
         <Divider />
         
         <List>
-          <ListItem button onClick={() => handleNavigation('/home')}>
-            <ListItemIcon>
-              <HomeIcon />
-            </ListItemIcon>
-            <ListItemText primary="Home" />
+          <ListItem>
+            <Button fullWidth onClick={() => handleNavigation('/home')} sx={{ justifyContent: 'flex-start', py: 1 }}>
+              <ListItemIcon>
+                <HomeIcon />
+              </ListItemIcon>
+              <ListItemText primary="Home" />
+            </Button>
           </ListItem>
           
           {isAuthenticated() ? (
             <>
-              <ListItem button onClick={() => handleNavigation('/chat')}>
-                <ListItemIcon>
-                  <ChatIcon />
-                </ListItemIcon>
-                <ListItemText primary="Messages" />
+              <ListItem>
+                <Button fullWidth onClick={() => handleNavigation('/chat')} sx={{ justifyContent: 'flex-start', py: 1 }}>
+                  <ListItemIcon>
+                    <ChatIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Messages" />
+                </Button>
               </ListItem>
               
-              <ListItem button onClick={() => handleNavigation(`/chef/${currentUser.username}`)}>
-                <ListItemIcon>
-                  <AccountCircleIcon />
-                </ListItemIcon>
-                <ListItemText primary="My Profile" />
+              <ListItem>
+                <Button fullWidth onClick={() => handleNavigation(`/chef/${currentUser.username}`)} sx={{ justifyContent: 'flex-start', py: 1 }}>
+                  <ListItemIcon>
+                    <AccountCircleIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="My Profile" />
+                </Button>
               </ListItem>
               
-              <ListItem button onClick={handleLogout}>
-                <ListItemIcon>
-                  <LogoutIcon />
-                </ListItemIcon>
-                <ListItemText primary="Logout" />
+              <ListItem>
+                <Button fullWidth onClick={handleLogout} sx={{ justifyContent: 'flex-start', py: 1 }}>
+                  <ListItemIcon>
+                    <LogoutIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Logout" />
+                </Button>
               </ListItem>
             </>
           ) : (
             <>
-              <ListItem button onClick={() => handleNavigation('/login')}>
-                <ListItemIcon>
-                  <LoginIcon />
-                </ListItemIcon>
-                <ListItemText primary="Login" />
+              <ListItem>
+                <Button fullWidth onClick={() => handleNavigation('/login')} sx={{ justifyContent: 'flex-start', py: 1 }}>
+                  <ListItemIcon>
+                    <LoginIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Login" />
+                </Button>
               </ListItem>
               
-              <ListItem button onClick={() => handleNavigation('/register')}>
-                <ListItemIcon>
-                  <PersonAddIcon />
-                </ListItemIcon>
-                <ListItemText primary="Register" />
+              <ListItem>
+                <Button fullWidth onClick={() => handleNavigation('/register')} sx={{ justifyContent: 'flex-start', py: 1 }}>
+                  <ListItemIcon>
+                    <PersonAddIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Register" />
+                </Button>
               </ListItem>
             </>
           )}
